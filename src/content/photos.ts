@@ -44,7 +44,7 @@ const slots: PhotoSlot[] = [
     label: "Photo — hands at the espresso machine (no faces of minors without written parental consent)",
     tone: "light",
   },
-  { id: "visit-exterior", alt: "The GEM entrance on Pine Street", label: "Photo — GEM entrance on Pine St.", tone: "light" },
+  { id: "visit-exterior", alt: "The GEM entrance on Pine Street", label: "Photo — GEM entrance on Pine St.", tone: "light" , src: "/photos/visit-exterior.webp"},
   { id: "about-1", alt: "The Liquid Lounge interior", label: "Photo — the lounge interior", tone: "light" },
   { id: "about-2", alt: "Historic Greenwood wall display", label: "Photo — historic Greenwood wall display", tone: "light" },
 ];

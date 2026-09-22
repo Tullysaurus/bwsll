@@ -436,6 +436,18 @@ img {
   color: var(--paper);
 }
 
+/* Footer legal row: inherits the row's 13px, with a hover affordance. */
+.link-quiet {
+  color: var(--footer-muted);
+  text-decoration: none;
+}
+
+.link-quiet:hover {
+  color: var(--footer-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .link-muted {
   color: var(--muted);
   font-weight: 500;

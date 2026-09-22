@@ -35,6 +35,13 @@ export const socialLinks = [
   { label: "X", href: business.social.x },
 ] as const;
 
+/** Site credit — rendered in the footer bottom row and as the `author` metadata. */
+export const credit = {
+  name: "Tully",
+  url: "https://tully.sh",
+  label: "Site by Tully",
+} as const;
+
 /** PDFs live in /public/files/. Drop the real files in over these names. */
 export const files = {
   menu: "/files/liquid-lounge-menu.pdf",

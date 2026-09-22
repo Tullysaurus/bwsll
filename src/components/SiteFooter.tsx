@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { business, socialLinks } from "@/content/business";
+import { business, credit, socialLinks } from "@/content/business";
 import { getSettings } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 import { Eyebrow } from "./Typography";
@@ -141,14 +141,20 @@ export async function SiteFooter({ compact }: { compact?: boolean }) {
           className="mt-12 flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between"
           style={{ borderTop: "1px solid var(--footer-rule)", color: "var(--footer-muted)", fontSize: 13 }}
         >
-          <p>
-            © {year} {business.legalEntity}
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>
+              © {year} {business.legalEntity}
+            </span>
+            <span aria-hidden="true">·</span>
+            <a href={credit.url} target="_blank" rel="noreferrer" className="link-quiet">
+              {credit.label}
+            </a>
           </p>
           <p className="flex gap-3">
             {legal.map((item, i) => (
               <span key={item.href}>
                 {i > 0 ? <span aria-hidden="true" className="mr-3">·</span> : null}
-                <Link href={item.href} style={{ color: "var(--footer-muted)" }}>
+                <Link href={item.href} className="link-quiet">
                   {item.label}
                 </Link>
               </span>

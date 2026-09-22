@@ -1,0 +1,26 @@
+/* TEAM */
+
+    Design & development: Tully
+    Site: https://tully.sh
+    Contact: tully [at] tully.sh
+    Location: Tulsa, Oklahoma
+
+/* SITE */
+
+    Name: Black Wall Street Liquid Lounge
+    Operator: BWS Enterprises, LLC
+    Address: 609 E. Pine St., Tulsa, OK 74106 — inside the GEM
+    Standards: HTML5, CSS3, JSON-LD, WCAG 2.2 AA
+    Language: English
+    Doctype: HTML5
+
+/* TECHNOLOGY */
+
+    Next.js (App Router) · TypeScript · Tailwind CSS
+    Cloudflare Workers (OpenNext) · Cloudflare D1 · Turnstile · Access
+    Type: Fraunces & Work Sans
+
+/* THANKS */
+
+    To the Greenwood Entrepreneurship at Moton, and to everyone who built
+    and rebuilt Black Wall Street.

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Work_Sans } from "next/font/google";
-import { business } from "@/content/business";
+import { business, credit } from "@/content/business";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -28,6 +28,10 @@ export async function generateMetadata(): Promise<Metadata> {
   description:
     "A café and community space in Tulsa's Historic Greenwood District serving Roots Java coffee from the Motherland. Private events, catering and membership.",
   applicationName: business.name,
+  // Attribution that survives even if the visible footer credit is ever removed.
+  authors: [{ name: credit.name, url: credit.url }],
+  creator: credit.name,
+  publisher: business.legalEntity,
   openGraph: {
     type: "website",
     siteName: business.name,

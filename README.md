@@ -77,6 +77,13 @@ detail page:
 
 `/admin/subscribers` also takes addresses by hand, for people who sign up in the shop.
 
+### Site credit
+
+Defined once as `credit` in `src/content/business.ts` and rendered in three places:
+the footer's bottom row ("Site by Tully"), the `author` / `creator` metadata in
+`src/app/layout.tsx`, and `public/humans.txt`. Removing the visible credit is a one-line
+change; the metadata and humans.txt stand on their own.
+
 ### The three things that change most often
 
 - **Menu** — `src/content/menu.ts` (a code edit; there is no menu editor in v1).
