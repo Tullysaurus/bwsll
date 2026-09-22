@@ -22,6 +22,7 @@ const slots: PhotoSlot[] = [
     alt: "The Greenwood Entrepreneurship at Moton building on Pine Street",
     label: "Photo — the GEM building on Pine St.",
     tone: "green",
+    src: "/photos/home-gem.webp"
   },
   { id: "ig-1", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light" },
   { id: "ig-2", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light-2" },
