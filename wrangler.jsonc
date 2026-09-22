@@ -20,7 +20,7 @@
   ],
 
   "vars": {
-    "SITE_URL": "https://bwsll.com",
+    "SITE_URL": "https://bwsll.tully.sh",
     "NOTIFY_TO": "info@bwsll.com",
     "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFAYA7me9m5Idl0x",
