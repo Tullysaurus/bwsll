@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireDb, type InquiryStatus } from "@/lib/db";
+import { z } from "zod";
 import { eventSchema, fieldErrors } from "@/lib/schemas";
 import { saveSetting, type HoursRow, type RentalRates } from "@/lib/settings";
 
@@ -25,6 +26,37 @@ export async function saveInquiryNotes(formData: FormData) {
 
   await requireDb().prepare("UPDATE inquiries SET notes = ?1 WHERE id = ?2").bind(notes, id).run();
   revalidatePath(`/admin/inquiries/${id}`);
+}
+
+/** Mailing list — the owner can add or remove an address by hand from either screen. */
+export async function addSubscriber(formData: FormData) {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  const source = String(formData.get("source") ?? "admin").slice(0, 60);
+  if (!email || !z.email().safeParse(email).success) return;
+
+  await requireDb()
+    .prepare("INSERT OR IGNORE INTO subscribers (email, source) VALUES (?1, ?2)")
+    .bind(email, source)
+    .run();
+
+  revalidatePath("/admin/subscribers");
+  const inquiryId = formData.get("inquiryId");
+  if (inquiryId) revalidatePath(`/admin/inquiries/${inquiryId}`);
+}
+
+export async function removeSubscriber(formData: FormData) {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  if (!email) return;
+
+  await requireDb().prepare("DELETE FROM subscribers WHERE email = ?1").bind(email).run();
+
+  revalidatePath("/admin/subscribers");
+  const inquiryId = formData.get("inquiryId");
+  if (inquiryId) revalidatePath(`/admin/inquiries/${inquiryId}`);
 }
 
 export type EventFormState = { errors?: Record<string, string>; message?: string };

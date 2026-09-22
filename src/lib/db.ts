@@ -138,6 +138,19 @@ export async function listInquiries(opts: { status?: InquiryStatus; type?: Inqui
   return results ?? [];
 }
 
+/** Recent booking requests, for the "autofill from an inquiry" picker on a new event. */
+export async function listBookingInquiries(limit = 30): Promise<InquiryRecord[]> {
+  const database = db();
+  if (!database) return [];
+  const { results } = await database
+    .prepare(
+      "SELECT * FROM inquiries WHERE type IN ('event','catering') ORDER BY created_at DESC, id DESC LIMIT ?1",
+    )
+    .bind(limit)
+    .all<InquiryRecord>();
+  return results ?? [];
+}
+
 export async function getInquiry(id: number): Promise<InquiryRecord | null> {
   const database = db();
   if (!database) return null;
@@ -151,6 +164,16 @@ export async function countNewInquiries(): Promise<number> {
     .prepare("SELECT COUNT(*) AS n FROM inquiries WHERE status = 'new'")
     .first<{ n: number }>();
   return row?.n ?? 0;
+}
+
+export async function isSubscriber(email: string): Promise<boolean> {
+  const database = db();
+  if (!database) return false;
+  const row = await database
+    .prepare("SELECT email FROM subscribers WHERE email = ?1")
+    .bind(email.toLowerCase())
+    .first<{ email: string }>();
+  return Boolean(row);
 }
 
 export async function listSubscribers(): Promise<SubscriberRecord[]> {

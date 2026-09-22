@@ -24,8 +24,8 @@
     "NOTIFY_TO": "info@bwsll.com",
     "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFAYA7me9m5Idl0x",
-    "CF_ACCESS_TEAM_DOMAIN": "bwsll.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD_TAG"
+    "CF_ACCESS_TEAM_DOMAIN": "tullydev.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "82d61140386d437b4c379e118925b961cec2cf4210ac42430cd9f87083ccb5df"
   }
 
   // Secrets (set with `npx wrangler secret put <NAME>`):

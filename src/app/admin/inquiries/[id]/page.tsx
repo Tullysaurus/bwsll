@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { saveInquiryNotes, setInquiryStatus } from "../../actions";
-import { getInquiry } from "@/lib/db";
+import { addSubscriber, removeSubscriber, saveInquiryNotes, setInquiryStatus } from "../../actions";
+import { getInquiry, isSubscriber } from "@/lib/db";
 import { formatCreatedAt, money } from "@/lib/format";
+import { isSchedulable } from "@/lib/inquiry-events";
 import type { Estimate } from "@/lib/schemas";
 import { business } from "@/content/business";
 
@@ -35,6 +36,8 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const inquiry = await getInquiry(Number(id));
   if (!inquiry) notFound();
+
+  const subscribed = await isSubscriber(inquiry.email);
 
   let data: Record<string, unknown> = {};
   let raw: string | null = null;
@@ -76,6 +79,33 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
             Call
           </a>
         ) : null}
+        {isSchedulable(inquiry) ? (
+          <Link href={`/admin/events/new?from=${inquiry.id}`} className="btn btn-secondary">
+            Add to calendar
+          </Link>
+        ) : null}
+
+        {subscribed ? (
+          <form action={removeSubscriber} className="flex items-center gap-3">
+            <input type="hidden" name="email" value={inquiry.email} />
+            <input type="hidden" name="inquiryId" value={inquiry.id} />
+            <span className="text-[15px]" style={{ color: "var(--muted)" }}>
+              On the mailing list
+            </span>
+            <button type="submit" className="link">
+              remove
+            </button>
+          </form>
+        ) : (
+          <form action={addSubscriber}>
+            <input type="hidden" name="email" value={inquiry.email} />
+            <input type="hidden" name="source" value={`inquiry:${inquiry.type}`} />
+            <input type="hidden" name="inquiryId" value={inquiry.id} />
+            <button type="submit" className="btn btn-secondary">
+              Add to mailing list
+            </button>
+          </form>
+        )}
       </div>
 
       <section className="mt-8">

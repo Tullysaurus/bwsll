@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { listInquiries, type InquiryStatus, type InquiryType } from "@/lib/db";
+import { addSubscriber, setInquiryStatus } from "../actions";
+import { listInquiries, listSubscribers, type InquiryStatus, type InquiryType } from "@/lib/db";
 import { formatCreatedAt, longDate } from "@/lib/format";
+import { isSchedulable } from "@/lib/inquiry-events";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +24,8 @@ export default async function InquiriesPage({
   const params = await searchParams;
   const status = STATUSES.find((s) => s.value === params.status)?.value;
   const type = TYPES.find((t) => t === params.type);
-  const rows = await listInquiries({ status, type });
+  const [rows, subscribers] = await Promise.all([listInquiries({ status, type }), listSubscribers()]);
+  const subscribed = new Set(subscribers.map((s) => s.email.toLowerCase()));
 
   const href = (next: { status?: string; type?: string }) => {
     const query = new URLSearchParams();
@@ -87,7 +90,7 @@ export default async function InquiriesPage({
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="price-table" style={{ minWidth: 720 }}>
+          <table className="price-table" style={{ minWidth: 980 }}>
             <thead>
               <tr>
                 <th scope="col" className="size-label">
@@ -107,6 +110,9 @@ export default async function InquiriesPage({
                 </th>
                 <th scope="col" className="size-label">
                   Status
+                </th>
+                <th scope="col" className="size-label">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -135,7 +141,55 @@ export default async function InquiriesPage({
                     </td>
                     <td style={{ fontSize: 15 }}>{eventDate ? longDate(eventDate) : "—"}</td>
                     <td style={{ fontSize: 15 }}>{guests || "—"}</td>
-                    <td style={{ fontSize: 15, textTransform: "capitalize" }}>{row.status}</td>
+                    <td>
+                      <form action={setInquiryStatus} className="flex items-center gap-2">
+                        <input type="hidden" name="id" value={row.id} />
+                        <label htmlFor={`status-${row.id}`} className="sr-only">
+                          Status for {row.name}
+                        </label>
+                        <select
+                          id={`status-${row.id}`}
+                          name="status"
+                          defaultValue={row.status}
+                          className="field-input"
+                          style={{ minHeight: 36, width: 110, padding: "4px 8px", fontSize: 14 }}
+                        >
+                          <option value="new">New</option>
+                          <option value="replied">Replied</option>
+                          <option value="booked">Booked</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                        <button type="submit" className="link" style={{ fontSize: 14 }}>
+                          Save
+                        </button>
+                      </form>
+                    </td>
+                    <td>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        {isSchedulable(row) ? (
+                          <Link
+                            href={`/admin/events/new?from=${row.id}`}
+                            className="link"
+                            style={{ fontSize: 14 }}
+                          >
+                            Add to calendar
+                          </Link>
+                        ) : null}
+                        {subscribed.has(row.email.toLowerCase()) ? (
+                          <span className="text-[14px]" style={{ color: "var(--muted)" }}>
+                            Subscribed
+                          </span>
+                        ) : (
+                          <form action={addSubscriber}>
+                            <input type="hidden" name="email" value={row.email} />
+                            <input type="hidden" name="source" value={`inquiry:${row.type}`} />
+                            <button type="submit" className="link" style={{ fontSize: 14 }}>
+                              Subscribe
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}

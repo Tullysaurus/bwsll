@@ -3,15 +3,36 @@
 import { useActionState } from "react";
 import { saveEvent, type EventFormState } from "../actions";
 import type { EventRecord } from "@/lib/db";
+import type { EventDefaults } from "@/lib/inquiry-events";
 
 const initial: EventFormState = {};
 
-export function EventForm({ event }: { event?: EventRecord }) {
+const BLANK: EventDefaults = {
+  title: "",
+  date: "",
+  startTime: "",
+  endTime: "",
+  location: "Liquid Lounge",
+  kind: "public",
+  description: "",
+};
+
+/** `defaults` seeds a new event (e.g. autofilled from an inquiry); `event` edits one. */
+export function EventForm({ event, defaults }: { event?: EventRecord; defaults?: EventDefaults }) {
   const [state, formAction, pending] = useActionState(saveEvent, initial);
 
-  const date = event?.starts_at.slice(0, 10) ?? "";
-  const startTime = event?.starts_at.slice(11, 16) ?? "";
-  const endTime = event?.ends_at?.slice(11, 16) ?? "";
+  const values: EventDefaults & { published: boolean } = event
+    ? {
+        title: event.title,
+        date: event.starts_at.slice(0, 10),
+        startTime: event.starts_at.slice(11, 16),
+        endTime: event.ends_at?.slice(11, 16) ?? "",
+        location: event.location,
+        kind: event.kind,
+        description: event.description ?? "",
+        published: event.published === 1,
+      }
+    : { ...BLANK, ...defaults, published: true };
 
   return (
     <form action={formAction} className="max-w-[620px]">
@@ -28,7 +49,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
           <label htmlFor="title" className="field-label">
             Title
           </label>
-          <input id="title" name="title" className="field-input" defaultValue={event?.title ?? ""} required />
+          <input id="title" name="title" className="field-input" defaultValue={values.title} required />
           {state.errors?.title ? <p className="field-error">{state.errors.title}</p> : null}
         </div>
 
@@ -36,7 +57,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
           <label htmlFor="date" className="field-label">
             Date
           </label>
-          <input id="date" name="date" type="date" className="field-input" defaultValue={date} required />
+          <input id="date" name="date" type="date" className="field-input" defaultValue={values.date} required />
           {state.errors?.date ? <p className="field-error">{state.errors.date}</p> : null}
         </div>
 
@@ -44,7 +65,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
           <label htmlFor="kind" className="field-label">
             Kind
           </label>
-          <select id="kind" name="kind" className="field-input" defaultValue={event?.kind ?? "public"}>
+          <select id="kind" name="kind" className="field-input" defaultValue={values.kind}>
             <option value="public">Open to all</option>
             <option value="private">Private event</option>
             <option value="catering">Off-site catering</option>
@@ -60,7 +81,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
             name="startTime"
             type="time"
             className="field-input"
-            defaultValue={startTime}
+            defaultValue={values.startTime}
             required
           />
           {state.errors?.startTime ? <p className="field-error">{state.errors.startTime}</p> : null}
@@ -70,7 +91,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
           <label htmlFor="endTime" className="field-label">
             End time (optional)
           </label>
-          <input id="endTime" name="endTime" type="time" className="field-input" defaultValue={endTime} />
+          <input id="endTime" name="endTime" type="time" className="field-input" defaultValue={values.endTime} />
         </div>
 
         <div className="sm:col-span-2">
@@ -81,7 +102,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
             id="location"
             name="location"
             className="field-input"
-            defaultValue={event?.location ?? "Liquid Lounge"}
+            defaultValue={values.location}
           />
         </div>
 
@@ -94,7 +115,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
             name="description"
             rows={4}
             className="field-input"
-            defaultValue={event?.description ?? ""}
+            defaultValue={values.description}
           />
         </div>
 
@@ -104,7 +125,7 @@ export function EventForm({ event }: { event?: EventRecord }) {
               type="checkbox"
               name="published"
               className="checkbox"
-              defaultChecked={event ? event.published === 1 : true}
+              defaultChecked={values.published}
             />
             Show on the public calendar
           </label>

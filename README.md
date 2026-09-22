@@ -49,6 +49,23 @@ src/proxy.ts      verifies the Cloudflare Access JWT for /admin and /api/admin
 migrations/       D1 schema + seed
 ```
 
+### Acting on an inquiry
+
+Inquiries aren't just a log — each one can be turned into work from either the list or the
+detail page:
+
+- **Add to calendar** — opens `/admin/events/new?from=<id>` with the title, date, start and
+  end time, kind and location already filled in from the request. Anything using the room
+  becomes a private event at the Lounge; a catering-only request becomes an off-site
+  catering event at the venue address they gave. Everything is editable before saving.
+  The same page has an **Autofill from a request** picker, so you can start from the events
+  screen instead.
+- **Subscribe** — adds that person's email to the mailing list (source `inquiry:<type>`),
+  and the row then reads "Subscribed". Removable from the inquiry or the subscribers page.
+- **Status** — change new/replied/booked/closed inline in the list, no need to open the row.
+
+`/admin/subscribers` also takes addresses by hand, for people who sign up in the shop.
+
 ### The three things that change most often
 
 - **Menu** — `src/content/menu.ts` (a code edit; there is no menu editor in v1).

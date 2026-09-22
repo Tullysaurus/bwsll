@@ -1,3 +1,4 @@
+import { addSubscriber, removeSubscriber } from "../actions";
 import { listSubscribers } from "@/lib/db";
 import { formatCreatedAt } from "@/lib/format";
 
@@ -20,6 +21,30 @@ export default async function SubscribersPage() {
         {rows.length} {rows.length === 1 ? "address" : "addresses"}.
       </p>
 
+      <form action={addSubscriber} className="mt-6 pb-6" style={{ borderBottom: "1px solid var(--line)" }}>
+        <label htmlFor="email" className="field-label">
+          Add a subscriber
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            placeholder="name@example.com"
+            className="field-input"
+            style={{ flex: "1 1 280px" }}
+          />
+          <input type="hidden" name="source" value="added by hand" />
+          <button type="submit" className="btn btn-primary">
+            Add
+          </button>
+        </div>
+        <p className="field-hint">
+          Use this for people who signed up in person. Duplicates are ignored.
+        </p>
+      </form>
+
       {rows.length === 0 ? null : (
         <table className="price-table mt-6">
           <thead>
@@ -33,6 +58,9 @@ export default async function SubscribersPage() {
               <th scope="col" className="size-label">
                 Signed up
               </th>
+              <th scope="col" className="size-label">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -41,6 +69,14 @@ export default async function SubscribersPage() {
                 <td style={{ fontSize: 15 }}>{row.email}</td>
                 <td style={{ fontSize: 15 }}>{row.source ?? "—"}</td>
                 <td style={{ fontSize: 15 }}>{formatCreatedAt(row.created_at)}</td>
+                <td style={{ textAlign: "right" }}>
+                  <form action={removeSubscriber}>
+                    <input type="hidden" name="email" value={row.email} />
+                    <button type="submit" className="link" style={{ fontSize: 14 }}>
+                      Remove
+                    </button>
+                  </form>
+                </td>
               </tr>
             ))}
           </tbody>
