@@ -4,7 +4,28 @@
  */
 
 export type PhotoTone = "light" | "light-2" | "dark" | "dark-2" | "green";
-export type PhotoSlot = { id: string; src?: string; alt: string; label: string; tone: PhotoTone };
+
+/**
+ * Required attribution for a licensed photo. `PhotoSlot` renders it over the bottom-right
+ * corner of the image, so a licence that says "credit must appear alongside the photo" is
+ * satisfied wherever the slot is used. Add `url` when the licence also asks for a link
+ * back to the original article.
+ *
+ *   { id: "hero", src: "/photos/hero.webp", alt: "…", label: "", tone: "dark",
+ *     credit: { text: "Photo: Jane Doe / Publication", url: "https://example.com/article" } }
+ *
+ * Leave it off for photos the business owns outright.
+ */
+export type PhotoCredit = { text: string; url?: string };
+
+export type PhotoSlot = {
+  id: string;
+  src?: string;
+  alt: string;
+  label: string;
+  tone: PhotoTone;
+  credit?: PhotoCredit;
+};
 
 const slots: PhotoSlot[] = [
   {
@@ -22,7 +43,7 @@ const slots: PhotoSlot[] = [
     alt: "The Greenwood Entrepreneurship at Moton building on Pine Street",
     label: "Photo — the GEM building on Pine St.",
     tone: "green",
-    src: "/photos/home-gem.webp"
+    src: "/photos/home-gem.webp",
   },
   { id: "ig-1", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light" },
   { id: "ig-2", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light-2" },
@@ -44,7 +65,13 @@ const slots: PhotoSlot[] = [
     label: "Photo — hands at the espresso machine (no faces of minors without written parental consent)",
     tone: "light",
   },
-  { id: "visit-exterior", alt: "The GEM entrance on Pine Street", label: "Photo — GEM entrance on Pine St.", tone: "light" , src: "/photos/visit-exterior.webp"},
+  {
+    id: "visit-exterior",
+    alt: "The GEM entrance on Pine Street",
+    label: "Photo — GEM entrance on Pine St.",
+    tone: "light",
+    src: "/photos/visit-exterior.webp",
+  },
   { id: "about-1", alt: "The Liquid Lounge interior", label: "Photo — the lounge interior", tone: "light" },
   { id: "about-2", alt: "Historic Greenwood wall display", label: "Photo — historic Greenwood wall display", tone: "light" },
 ];

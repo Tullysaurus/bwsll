@@ -20,6 +20,9 @@ const TONE_LABEL: Record<PhotoTone, string> = {
 /**
  * Every image goes through here (§4.4). Without a `src` the slot renders a labelled
  * placeholder block in the tone's colour; the slot — never the photo — sets the size.
+ *
+ * A licensed photo's `credit` is overlaid bottom-right rather than captioned beneath,
+ * so attribution never changes the layout the slot promises.
  */
 export function PhotoSlot({
   id,
@@ -29,6 +32,7 @@ export function PhotoSlot({
   priority,
   sizeHint,
   labelAlign = "bottom",
+  overlay,
 }: {
   id?: string;
   slot?: Slot;
@@ -40,12 +44,14 @@ export function PhotoSlot({
   sizeHint?: { width: number; height: number };
   /** The hero anchors its copy to the bottom, so its label sits at the top instead. */
   labelAlign?: "bottom" | "top";
+  /** Darkens a real photo so light copy over it stays legible (§5.1.2). */
+  overlay?: boolean;
 }) {
   const data = slot ?? photo(id!);
 
   if (data.src) {
     return (
-      <div className={`relative overflow-hidden ${className}`} style={style}>
+      <figure className={`relative m-0 overflow-hidden ${className}`} style={style}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={data.src}
@@ -57,7 +63,21 @@ export function PhotoSlot({
           decoding={priority ? "sync" : "async"}
           className="h-full w-full object-cover"
         />
-      </div>
+        {overlay ? (
+          <div className="absolute inset-0" style={{ background: "rgba(30,24,19,0.45)" }} aria-hidden="true" />
+        ) : null}
+        {data.credit ? (
+          <figcaption className="photo-credit">
+            {data.credit.url ? (
+              <a href={data.credit.url} target="_blank" rel="noreferrer">
+                {data.credit.text}
+              </a>
+            ) : (
+              data.credit.text
+            )}
+          </figcaption>
+        ) : null}
+      </figure>
     );
   }
 

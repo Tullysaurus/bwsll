@@ -10,7 +10,7 @@ import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { business, files } from "@/content/business";
 import { home, workforceCurriculum } from "@/content/copy";
 import { featuredItems } from "@/content/menu";
-import { instagramSlots, photo } from "@/content/photos";
+import { instagramSlots } from "@/content/photos";
 import { getUpcomingEvents } from "@/lib/db";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
@@ -33,13 +33,11 @@ export default async function HomePage() {
       {/* 1 — Hero */}
       <section className="on-dark relative flex min-h-[600px] items-end md:min-h-[min(780px,88vh)]">
         {/* The slot keeps its own `relative` for the placeholder label, so it is the
-            wrapper — not the slot — that is positioned behind the hero copy. */}
+            wrapper — not the slot — that is positioned behind the hero copy. The scrim
+            and any photo credit live inside the slot, above the image. */}
         <div className="absolute inset-0">
-          <PhotoSlot id="hero" priority labelAlign="top" className="h-full w-full" />
+          <PhotoSlot id="hero" priority overlay labelAlign="top" className="h-full w-full" />
         </div>
-        {photo("hero").src ? (
-          <div className="absolute inset-0" style={{ background: "rgba(30,24,19,0.45)" }} aria-hidden="true" />
-        ) : null}
         <div className="shell gutter relative w-full pb-10 pt-24 md:pb-24">
           <Eyebrow gold className="hidden md:block">
             {home.hero.eyebrow}
