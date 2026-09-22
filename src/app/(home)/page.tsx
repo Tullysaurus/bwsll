@@ -14,6 +14,7 @@ import { instagramSlots, photo } from "@/content/photos";
 import { getUpcomingEvents } from "@/lib/db";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Black Wall Street Liquid Lounge — Coffee in Tulsa's Greenwood District",
@@ -24,11 +25,10 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const [events, settings] = await Promise.all([getUpcomingEvents(4), getSettings()]);
-  const siteUrl = process.env.SITE_URL || "https://bwsll.com";
 
   return (
     <>
-      <JsonLd data={cafeJsonLd(settings.hours, siteUrl)} />
+      <JsonLd data={cafeJsonLd(settings.hours, siteUrl())} />
 
       {/* 1 — Hero */}
       <section className="on-dark relative flex min-h-[600px] items-end md:min-h-[min(780px,88vh)]">

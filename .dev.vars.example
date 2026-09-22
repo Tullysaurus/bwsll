@@ -1,15 +1,27 @@
-# Copy to `.dev.vars` for local development (git-ignored).
-# Every value below is optional locally — the app degrades gracefully:
+# Local development config. Copy to `.dev.vars` (git-ignored):
+#   cp .dev.vars.example .dev.vars
+#
+# IMPORTANT: put local config here, never in `.env` / `.env.local`. OpenNext snapshots
+# `.env*` files into the deployed Worker (see .open-next/cloudflare/next-env.mjs), so a
+# local value there ships to production. `.dev.vars` is read only by local dev.
+#
+# Production values live in `wrangler.jsonc` → `vars` and `npx wrangler secret put`.
+#
+# Everything below is optional — the app degrades gracefully:
 #   no TURNSTILE_SECRET  -> captcha verification is skipped
 #   no RESEND_API_KEY    -> notification emails are logged to the console
-#   DEV_ADMIN=1          -> /admin is reachable without Cloudflare Access
 
-DEV_ADMIN=1
 SITE_URL=http://localhost:3000
+
+# /admin bypasses Cloudflare Access automatically in development. A production build can
+# never bypass it. Set this to 0 to test the real Access path locally (you will get 403
+# unless CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD below are real and you hold a valid JWT).
+DEV_ADMIN=1
+
 NOTIFY_TO=info@bwsll.com
 NOTIFY_FROM=Liquid Lounge Website <website@notify.bwsll.com>
 
-# Cloudflare Turnstile — the "always passes" test pair is safe to commit locally.
+# Cloudflare Turnstile — the "always passes" test pair, safe to commit.
 TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
 

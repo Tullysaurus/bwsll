@@ -20,6 +20,10 @@
   ],
 
   "vars": {
+    // Canonical origin — drives canonical tags, the sitemap, robots.txt and the admin
+    // link inside notification emails. Must match the host the Worker actually serves;
+    // change it to https://bwsll.com at launch. Read at runtime, so a `wrangler deploy`
+    // picks it up with no rebuild.
     "SITE_URL": "https://bwsll.tully.sh",
     "NOTIFY_TO": "info@bwsll.com",
     "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",

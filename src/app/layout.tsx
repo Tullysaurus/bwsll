@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Work_Sans } from "next/font/google";
 import { business } from "@/content/business";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -16,10 +17,10 @@ const workSans = Work_Sans({
   variable: "--font-work-sans",
 });
 
-const siteUrl = process.env.SITE_URL || "https://bwsll.com";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+export async function generateMetadata(): Promise<Metadata> {
+  const site = siteUrl();
+  return {
+  metadataBase: new URL(site),
   title: {
     default: "Black Wall Street Liquid Lounge — Coffee in Tulsa's Greenwood District",
     template: "%s | Black Wall Street Liquid Lounge",
@@ -31,13 +32,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: business.name,
     locale: "en_US",
-    url: siteUrl,
+    url: site,
     images: [{ url: "/og-default.png", width: 1200, height: 630, alt: business.name }],
   },
   twitter: { card: "summary_large_image" },
   manifest: "/site.webmanifest",
   alternates: { canonical: "/" },
-};
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#24493A",

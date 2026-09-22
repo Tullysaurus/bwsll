@@ -8,6 +8,7 @@ import { events as copy } from "@/content/copy";
 import { getUpcomingEvents, type EventKind } from "@/lib/db";
 import { eventJsonLd } from "@/lib/jsonld";
 import { monthYearKey, monthYearLabel } from "@/lib/format";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Events",
@@ -31,7 +32,6 @@ export default async function EventsPage({
   const activeKind = FILTERS.find((f) => f.kind === kind)?.kind;
   const all = await getUpcomingEvents();
   const shown = activeKind ? all.filter((e) => e.kind === activeKind) : all;
-  const siteUrl = process.env.SITE_URL || "https://bwsll.com";
 
   // Group into months, preserving the ascending order the query returned.
   const months = new Map<string, typeof shown>();
@@ -47,7 +47,7 @@ export default async function EventsPage({
       {all
         .filter((event) => event.kind === "public")
         .map((event) => (
-          <JsonLd key={event.id} data={eventJsonLd(event, siteUrl)} />
+          <JsonLd key={event.id} data={eventJsonLd(event, siteUrl())} />
         ))}
 
       <PageIntro

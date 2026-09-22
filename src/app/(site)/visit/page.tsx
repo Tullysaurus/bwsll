@@ -8,6 +8,7 @@ import { business, socialLinks } from "@/content/business";
 import { visit } from "@/content/copy";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
+import { siteUrl } from "@/lib/site";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
 export const metadata: Metadata = {
@@ -19,11 +20,10 @@ export const metadata: Metadata = {
 
 export default async function VisitPage() {
   const settings = await getSettings();
-  const siteUrl = process.env.SITE_URL || "https://bwsll.com";
 
   return (
     <>
-      <JsonLd data={cafeJsonLd(settings.hours, siteUrl)} />
+      <JsonLd data={cafeJsonLd(settings.hours, siteUrl())} />
 
       <section className="shell gutter pt-14 pb-16 md:pt-20 md:pb-24">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">

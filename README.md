@@ -10,11 +10,20 @@ comments (`§4.4`, `§5.3`, …) point at it.
 
 ```bash
 npm install
-cp .env.example .env.local        # DEV_ADMIN=1 opens /admin without Cloudflare Access
-cp .dev.vars.example .dev.vars    # worker vars + the Turnstile "always passes" test keys
+cp .dev.vars.example .dev.vars    # local config — see the warning below
 npm run db:migrate:local          # creates the local D1 database and seeds it
 npm run dev
 ```
+
+> **Never create a `.env` or `.env.local` file in this project.** OpenNext bakes `.env*`
+> files into the deployed Worker, so local values reach production — including the
+> `/admin` auth bypass. Local config goes in `.dev.vars`; production config in
+> `wrangler.jsonc` → `vars` and `wrangler secret put`. `next.config.ts` fails the build if
+> it catches a dangerous value, and the `/admin` bypass is keyed off `NODE_ENV` so a
+> production build can never take it. See [DEPLOY.md](DEPLOY.md) §5.
+
+`/admin` opens automatically in development. Set `DEV_ADMIN=0` in `.dev.vars` to exercise
+the real Cloudflare Access path.
 
 The app degrades gracefully when things aren't configured yet:
 
@@ -23,14 +32,16 @@ The app degrades gracefully when things aren't configured yet:
 | D1 binding | Settings fall back to the defaults in `src/lib/settings.ts`; the events list is empty; form submits return a 500 with a friendly message |
 | `TURNSTILE_SECRET` | Captcha verification is skipped (a warning is logged) |
 | `RESEND_API_KEY` | The notification email is written to the console instead of sent |
-| `DEV_ADMIN=1` | `/admin` opens without an Access JWT — **never set this in production** |
+| `DEV_ADMIN` | Unset in dev, `/admin` opens without an Access JWT. Ignored entirely by production builds. |
 
 ## Scripts
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Next dev server with local Cloudflare bindings |
-| `npm run build` / `npm run typecheck` / `npm run lint` | Standard checks |
+| `npm run build` | Full Cloudflare build (`opennextjs-cloudflare build`) — this is what Workers Builds runs |
+| `npm run build:next` | Plain `next build`, for a quick check |
+| `npm run typecheck` / `npm run lint` | Standard checks |
 | `npm run db:migrate:local` / `npm run db:migrate` | Apply `migrations/` to the local / remote D1 database |
 | `npm run cf:preview` | Build with OpenNext and run the real Worker locally |
 | `npm run cf:deploy` | Build and deploy to Cloudflare |

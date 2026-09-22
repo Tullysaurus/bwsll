@@ -2,8 +2,8 @@
 
 Written for: whoever sets up the Cloudflare account and runs the DNS migration.
 
-Everything in `wrangler.jsonc` marked `REPLACE_WITH_…` needs a real value before the first
-deploy. Work through the steps in order.
+Steps 1–4 are one-time account setup (already done on this project). Steps 5–6 are the
+rules that keep deploys working — read those even if the rest is configured.
 
 ---
 
@@ -78,21 +78,78 @@ is **not** set in production.
 > `/admin` at the edge before a request reaches the Worker. Re-check `/admin` after any
 > Next or OpenNext upgrade.
 
-## 5. First deploy
+## 5. Never put config in `.env` files
 
-```bash
-npm run cf:deploy
+**This project uses no `.env` files, on purpose.** OpenNext snapshots whatever `.env*`
+files exist at build time into the deployed Worker — you can see the result in
+`.open-next/cloudflare/next-env.mjs`:
+
+```js
+export const production = {};   // must stay empty
 ```
 
-This builds with OpenNext and publishes to a `*.workers.dev` URL. Open `/admin` — Access
-should challenge you for a PIN. Send yourself a test inquiry from `/visit` and confirm the
-email arrives.
+A `.env.local` containing `DEV_ADMIN=1` therefore ships to production and disables the
+Cloudflare Access check on `/admin`; a local `SITE_URL` becomes your public canonical URL
+and sitemap host. Both have happened on this project.
 
-> If `npm install` reported blocked install scripts for `workerd` or `esbuild`, run
-> `npm install-scripts approve workerd esbuild` (or reinstall without the block) before
-> `cf:build` — the Worker build needs their native binaries.
+So:
 
-## 6. Domain migration off GoDaddy
+| Config | Lives in |
+|---|---|
+| Local development | `.dev.vars` (copy from `.dev.vars.example`) |
+| Production vars | `wrangler.jsonc` → `vars` |
+| Production secrets | `npx wrangler secret put <NAME>` |
+
+Two safeguards are in place, but don't rely on them:
+
+- `next.config.ts` **fails the build** if `DEV_ADMIN=1` or a localhost `SITE_URL` is in
+  the environment.
+- `src/proxy.ts` keys the `/admin` bypass off `NODE_ENV`, so a production build cannot
+  take that branch no matter what env vars say. Verify after any deploy:
+  `grep -r "dev@localhost" .open-next` should find nothing.
+
+`SITE_URL` is read at request time, so changing it in `wrangler.jsonc` and redeploying is
+enough — no rebuild semantics to think about.
+
+## 6. Builds on Cloudflare (Workers Builds)
+
+The stock Workers Builds settings work as-is:
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+
+`npm run build` is `opennextjs-cloudflare build`, which produces `.open-next/` — the
+directory `wrangler deploy` needs. Plain `next build` does **not** produce it, and a
+deploy on top of it fails with:
+
+```
+ERROR Could not find compiled Open Next config, did you run the build command?
+```
+
+Two details make this work and are easy to break:
+
+- `open-next.config.ts` sets `buildCommand: "npm run build:next"`. OpenNext shells out to
+  `npm run build` by default, which would recurse into itself. `build:next` is the plain
+  `next build`.
+- `package.json` has an `allowScripts` block for `esbuild`, `workerd` and
+  `unrs-resolver`. Without it npm blocks their install scripts in CI and the bundler has
+  no native binary. If new packages need approval, `npm approve-scripts <pkg>` adds them.
+
+## 7. First deploy
+
+```bash
+npm run cf:deploy     # or just `git push` once Workers Builds is connected
+```
+
+Open `/admin` — Access should challenge you for a one-time PIN, and the header should show
+**your** email address. If it says `dev@localhost`, a dev bypass reached production: check
+for a stray `.env` file and confirm `next-env.mjs` is empty.
+
+Send yourself a test inquiry from `/visit` and confirm the notification email arrives.
+
+## 8. Domain migration off GoDaddy
 
 Do these in order, and don't cancel anything until the new site **and** email are verified.
 
@@ -109,13 +166,14 @@ Do these in order, and don't cancel anything until the new site **and** email ar
 7. Check that mail to `info@bwsll.com` still arrives.
 8. Only then cancel the GoDaddy Website Builder plan.
 
-## 7. After launch
+## 9. After launch
 
 - Update the **Google Business Profile** website link, hours and address.
 - Update **Visit Tulsa**, **TravelOK** and **Yelp** — several still list 10 N Greenwood.
 - Confirm `/robots.txt` and `/sitemap.xml` resolve, and submit the sitemap in Search Console.
-- Set `SITE_URL` in `wrangler.jsonc` to `https://bwsll.com` (it already is) — it drives
-  canonical URLs, the sitemap and the admin link inside notification emails.
+- Set `SITE_URL` in `wrangler.jsonc` to `https://bwsll.com` — it drives canonical URLs,
+  the sitemap, robots.txt and the admin link inside notification emails, and it is still
+  pointed at the temporary domain.
 
 ## Regenerating the icons and share image
 

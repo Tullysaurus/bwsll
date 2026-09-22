@@ -31,8 +31,9 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+# This project deliberately uses NO .env files — OpenNext bakes them into the deployed
+# Worker. Local config goes in .dev.vars; production config in wrangler.jsonc vars.
 .env*
-!.env.example
 
 # vercel
 .vercel

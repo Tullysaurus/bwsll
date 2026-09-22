@@ -1,4 +1,9 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/site";
+
+// Rendered per request so the host comes from the runtime SITE_URL var, not a build-time
+// `.env` value that OpenNext would bake into the Worker.
+export const dynamic = "force-dynamic";
 
 const routes = [
   { path: "/", priority: 1, changeFrequency: "weekly" as const },
@@ -15,7 +20,7 @@ const routes = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.SITE_URL || "https://bwsll.com";
+  const base = siteUrl();
   const lastModified = new Date();
   return routes.map((route) => ({
     url: `${base}${route.path}`,
