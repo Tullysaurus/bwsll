@@ -1,0 +1,12 @@
+{
+  "name": "Black Wall Street Liquid Lounge",
+  "short_name": "Liquid Lounge",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3EDE3",
+  "theme_color": "#24493A",
+  "icons": [
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/apple-icon.png", "type": "image/png", "sizes": "180x180" }
+  ]
+}

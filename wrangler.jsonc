@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bwsll",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-22",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bwsll",
+      // TODO: replace after `npx wrangler d1 create bwsll`
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "vars": {
+    "SITE_URL": "https://bwsll.com",
+    "NOTIFY_TO": "info@bwsll.com",
+    "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
+    "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
+    "CF_ACCESS_TEAM_DOMAIN": "bwsll.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD_TAG"
+  }
+
+  // Secrets (set with `npx wrangler secret put <NAME>`):
+  //   RESEND_API_KEY
+  //   TURNSTILE_SECRET
+}

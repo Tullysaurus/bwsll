@@ -1,26 +1,618 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens — §2 of the build spec. These values are the contract with the
+   design canvas; change them here and nowhere else.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-cream: #f3ede3;
+  --color-paper: #fbf8f3;
+  --color-ink: #1e1813;
+  --color-muted: #5e544a;
+  --color-line: #d8cdbc;
+  --color-line-strong: #b9ac98;
+  --color-green: #24493a;
+  --color-green-hover: #163025;
+  --color-green-deep: #1a382c;
+  --color-green-soft-text: #dce5df;
+  --color-gold: #d9a441;
+  --color-footer-text: #e9dfd0;
+  --color-footer-muted: #bfaf98;
+  --color-footer-rule: #3a322b;
+  --color-footer-input: #6e6358;
+  --color-ph-dark: #2b231d;
+  --color-ph-dark-2: #3a2f27;
+  --color-ph-light: #d9cfbf;
+  --color-ph-light-2: #cfc3b0;
+  --color-ph-label: #4a4037;
+  --color-ph-green-label: #bfd0c6;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* The nav collapses at 1200px (§4.2), which is also the desktop gutter breakpoint. */
+  --breakpoint-xl: 1200px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Raw aliases so hand-written CSS can use the spec's token names verbatim. */
+  --cream: #f3ede3;
+  --paper: #fbf8f3;
+  --ink: #1e1813;
+  --muted: #5e544a;
+  --line: #d8cdbc;
+  --line-strong: #b9ac98;
+  --green: #24493a;
+  --green-hover: #163025;
+  --green-deep: #1a382c;
+  --green-soft-text: #dce5df;
+  --gold: #d9a441;
+  --footer-text: #e9dfd0;
+  --footer-muted: #bfaf98;
+  --footer-rule: #3a322b;
+  --footer-input: #6e6358;
+  --ph-dark: #2b231d;
+  --ph-dark-2: #3a2f27;
+  --ph-light: #d9cfbf;
+  --ph-light-2: #cfc3b0;
+  --ph-label: #4a4037;
+
+  /* §2.3 — gutter and section rhythm. */
+  --gutter: 20px;
+  --section-y: 64px;
+  --shell: 1440px;
+
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --gutter: 48px;
+    --section-y: 80px;
   }
 }
 
+@media (min-width: 1200px) {
+  :root {
+    --gutter: 120px;
+    --section-y: 116px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+* {
+  min-width: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Anchor targets must clear the sticky header. */
+  scroll-padding-top: 110px;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+}
+
+::selection {
+  background: var(--green);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+.on-dark :focus-visible {
+  outline-color: var(--gold);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Layout helpers
+--------------------------------------------------------------------------- */
+
+.shell {
+  max-width: var(--shell);
+  margin-inline: auto;
+}
+
+.gutter {
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: var(--section-y);
+}
+
+.rule-top {
+  border-top: 1px solid var(--line);
+}
+
+.rule-top-ink {
+  border-top: 1px solid var(--ink);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--green);
+  color: var(--paper);
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography — §2.2
+--------------------------------------------------------------------------- */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-optical-sizing: auto;
+}
+
+.h1-hero {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.h1-page {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.h1-page-lg {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+.quote {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+  .h1-hero {
+    font-size: 88px;
+    line-height: 0.98;
+  }
+  .h1-page,
+  .h1-page-lg {
+    font-size: 72px;
+  }
+  .h2 {
+    font-size: 44px;
+    line-height: 1.06;
+  }
+  .h3 {
+    font-size: 30px;
+  }
+  .quote {
+    font-size: 46px;
+    line-height: 1.08;
+  }
+}
+
+@media (min-width: 1200px) {
+  .h1-hero {
+    font-size: 120px;
+  }
+  .h1-page {
+    font-size: 84px;
+  }
+  .h1-page-lg {
+    font-size: 96px;
+  }
+  .h2 {
+    font-size: 54px;
+  }
+  .h3 {
+    font-size: 32px;
+  }
+  .quote {
+    font-size: 58px;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--green);
+}
+
+@media (min-width: 768px) {
+  .eyebrow {
+    font-size: 12px;
+  }
+}
+
+.eyebrow-gold {
+  color: var(--gold);
+}
+
+.body-lg {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.small {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.caption {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .body-lg {
+    font-size: 18px;
+  }
+  .caption {
+    font-size: 13px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons & links — §2.4
+--------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 16px 24px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.btn-secondary {
+  border-color: var(--green);
+  color: var(--green);
+  background: transparent;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--green);
+  color: var(--paper);
+}
+
+.btn-on-dark-solid {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn-on-dark-solid:hover:not(:disabled) {
+  background: #ffffff;
+}
+
+.btn-on-dark-outline {
+  border-color: var(--paper);
+  color: var(--paper);
+  background: transparent;
+}
+
+.btn-on-dark-outline:hover:not(:disabled) {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: #c9952f;
+}
+
+.btn-nav {
+  padding: 14px 22px;
+}
+
+.link {
+  color: var(--green);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--green-hover);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.link-on-dark {
+  color: var(--paper);
+}
+
+.link-on-dark:hover {
+  color: var(--paper);
+}
+
+.link-muted {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.link-muted:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+   Forms — §4.8
+--------------------------------------------------------------------------- */
+
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.field-input {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.field-input::placeholder {
+  color: #9b9084;
+}
+
+textarea.field-input {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field-error {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #8c2f20;
+}
+
+.field-hint {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Pills & chips
+--------------------------------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.chip:hover {
+  border-color: var(--ink);
+}
+
+.chip[aria-current="true"],
+.chip[aria-checked="true"],
+.chip-active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Tables — menu & rental pricing
+--------------------------------------------------------------------------- */
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.price-table th,
+.price-table td {
+  text-align: left;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.price-table thead th {
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 14px;
+  vertical-align: bottom;
+}
+
+.price-table .num {
+  text-align: right;
+  width: 90px;
+  font-variant-numeric: tabular-nums;
+}
+
+.size-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
 }

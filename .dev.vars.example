@@ -1,0 +1,18 @@
+# Copy to `.dev.vars` for local development (git-ignored).
+# Every value below is optional locally — the app degrades gracefully:
+#   no TURNSTILE_SECRET  -> captcha verification is skipped
+#   no RESEND_API_KEY    -> notification emails are logged to the console
+#   DEV_ADMIN=1          -> /admin is reachable without Cloudflare Access
+
+DEV_ADMIN=1
+SITE_URL=http://localhost:3000
+NOTIFY_TO=info@bwsll.com
+NOTIFY_FROM=Liquid Lounge Website <website@notify.bwsll.com>
+
+# Cloudflare Turnstile — the "always passes" test pair is safe to commit locally.
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+
+RESEND_API_KEY=
+CF_ACCESS_TEAM_DOMAIN=bwsll.cloudflareaccess.com
+CF_ACCESS_AUD=

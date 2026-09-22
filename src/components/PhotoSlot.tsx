@@ -1,0 +1,81 @@
+import type { CSSProperties } from "react";
+import { photo, type PhotoSlot as Slot, type PhotoTone } from "@/content/photos";
+
+const TONE_BG: Record<PhotoTone, string> = {
+  light: "var(--ph-light)",
+  "light-2": "var(--ph-light-2)",
+  dark: "var(--ph-dark)",
+  "dark-2": "var(--ph-dark-2)",
+  green: "var(--green-deep)",
+};
+
+const TONE_LABEL: Record<PhotoTone, string> = {
+  light: "var(--ph-label)",
+  "light-2": "var(--ph-label)",
+  dark: "var(--footer-muted)",
+  "dark-2": "var(--footer-muted)",
+  green: "#BFD0C6",
+};
+
+/**
+ * Every image goes through here (§4.4). Without a `src` the slot renders a labelled
+ * placeholder block in the tone's colour; the slot — never the photo — sets the size.
+ */
+export function PhotoSlot({
+  id,
+  slot,
+  className = "",
+  style,
+  priority,
+  sizeHint,
+  labelAlign = "bottom",
+}: {
+  id?: string;
+  slot?: Slot;
+  className?: string;
+  style?: CSSProperties;
+  /** Hero only: eager-load with high fetch priority. */
+  priority?: boolean;
+  /** Rendered width/height attributes to reserve layout space. */
+  sizeHint?: { width: number; height: number };
+  /** The hero anchors its copy to the bottom, so its label sits at the top instead. */
+  labelAlign?: "bottom" | "top";
+}) {
+  const data = slot ?? photo(id!);
+
+  if (data.src) {
+    return (
+      <div className={`relative overflow-hidden ${className}`} style={style}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={data.src}
+          alt={data.alt}
+          width={sizeHint?.width}
+          height={sizeHint?.height}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
+          decoding={priority ? "sync" : "async"}
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{ background: TONE_BG[data.tone], ...style }}
+      role="img"
+      aria-label={data.alt}
+    >
+      {data.label ? (
+        <span
+          className={`absolute left-0 ${labelAlign === "top" ? "top-0" : "bottom-0"} p-[14px] md:p-[22px] pr-6 text-[11px] font-semibold uppercase leading-snug`}
+          style={{ color: TONE_LABEL[data.tone], letterSpacing: "0.16em" }}
+        >
+          {data.label}
+        </span>
+      ) : null}
+    </div>
+  );
+}
