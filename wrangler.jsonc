@@ -14,8 +14,7 @@
     {
       "binding": "DB",
       "database_name": "bwsll",
-      // TODO: replace after `npx wrangler d1 create bwsll`
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "8719de10-7e3f-46c2-a95d-3517383f2a29",
       "migrations_dir": "migrations"
     }
   ],
@@ -24,7 +23,7 @@
     "SITE_URL": "https://bwsll.com",
     "NOTIFY_TO": "info@bwsll.com",
     "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
-    "TURNSTILE_SITE_KEY": "REPLACE_WITH_TURNSTILE_SITE_KEY",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFAYA7me9m5Idl0x",
     "CF_ACCESS_TEAM_DOMAIN": "bwsll.cloudflareaccess.com",
     "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD_TAG"
   }
