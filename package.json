@@ -16,7 +16,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate:prod": "wrangler d1 migrations apply bwsll-prod --remote --env production",
-    "cf:deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production"
+    "cf:deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production",
+    "seed:files:local": "node scripts/seed-files.mjs --env dev --local",
+    "seed:files": "node scripts/seed-files.mjs --env dev",
+    "seed:files:prod": "node scripts/seed-files.mjs --env production"
   },
   "dependencies": {
     "jose": "^6.2.12",

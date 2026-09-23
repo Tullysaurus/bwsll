@@ -21,6 +21,21 @@ create the schema and seed data on the real database:
 npm run db:migrate
 ```
 
+## 1b. R2 bucket and seed files
+
+```bash
+npx wrangler r2 bucket create bwsll-media          # or bwsll-media-prod, --env production
+npm run seed:files                                  # or seed:files:prod
+```
+
+`seed-files` uploads everything in `seed/files`, `seed/photos` and `seed/fonts` to R2 and
+records the matching `media`, `documents` and `photo_slots` rows. It is idempotent — keys
+are content hashes and every write is an upsert — so re-running it is always safe.
+
+**Never put PDFs or photos back into `public/`.** Static assets are served before the
+Worker runs, so a file at `public/files/vendor-agreement.pdf` would silently shadow the
+R2-backed route and the owner's uploads would stop appearing.
+
 ## 2. Turnstile
 
 Cloudflare dashboard → **Turnstile** → add a widget for `bwsll.com` (Managed mode).

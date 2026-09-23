@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLink, Button } from "@/components/Button";
 import { EventList } from "@/components/EventRow";
@@ -10,7 +9,6 @@ import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { business, files } from "@/content/business";
 import { home, workforceCurriculum } from "@/content/copy";
 import { featuredItems } from "@/content/menu";
-import { instagramSlots } from "@/content/photos";
 import { getUpcomingEvents } from "@/lib/db";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
@@ -212,30 +210,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 8 — Instagram */}
-      <section className="shell gutter rule-top pb-16 pt-12">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="display" style={{ fontSize: 40 }}>
-            {business.instagramHandle}
-          </h2>
-          <ArrowLink href={business.social.instagram}>Follow on Instagram</ArrowLink>
-        </div>
-        <ul className="mt-8 grid list-none grid-cols-3 gap-4 md:grid-cols-6">
-          {instagramSlots.map((slot) => (
-            <li key={slot.id}>
-              <Link
-                href={business.social.instagram}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`View ${business.instagramHandle} on Instagram`}
-                className="block"
-              >
-                <PhotoSlot slot={slot} className="aspect-square w-full" sizeHint={{ width: 186, height: 186 }} />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
     </>
   );
 }

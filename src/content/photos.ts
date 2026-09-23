@@ -45,12 +45,6 @@ const slots: PhotoSlot[] = [
     tone: "green",
     src: "/photos/home-gem.webp",
   },
-  { id: "ig-1", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light" },
-  { id: "ig-2", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light-2" },
-  { id: "ig-3", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light" },
-  { id: "ig-4", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light-2" },
-  { id: "ig-5", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light" },
-  { id: "ig-6", alt: "Instagram post from @BWStLiquidLounge", label: "", tone: "light-2" },
   { id: "menu-food", alt: "A honey butter croissant", label: "Photo — honey butter croissant", tone: "light" },
   {
     id: "events-hero",
@@ -78,10 +72,11 @@ const slots: PhotoSlot[] = [
 
 const byId = new Map(slots.map((s) => [s.id, s]));
 
+/** Slot ids in declaration order — the admin photo screen walks these. */
+export const photoSlotIds: string[] = slots.map((s) => s.id);
+
 export function photo(id: string): PhotoSlot {
   const found = byId.get(id);
   if (!found) throw new Error(`Unknown photo slot: ${id}`);
   return found;
 }
-
-export const instagramSlots = ["ig-1", "ig-2", "ig-3", "ig-4", "ig-5", "ig-6"].map(photo);

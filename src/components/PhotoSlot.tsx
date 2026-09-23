@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { photo, type PhotoSlot as Slot, type PhotoTone } from "@/content/photos";
+import type { PhotoTone } from "@/content/photos";
+import { getPhotoSlot } from "@/lib/photos";
 
 const TONE_BG: Record<PhotoTone, string> = {
   light: "var(--ph-light)",
@@ -18,15 +19,15 @@ const TONE_LABEL: Record<PhotoTone, string> = {
 };
 
 /**
- * Every image goes through here (§4.4). Without a `src` the slot renders a labelled
- * placeholder block in the tone's colour; the slot — never the photo — sets the size.
+ * Every image goes through here (v1 §4.4). The slot — never the photo — sets the size,
+ * so a layout is identical whether the owner has uploaded an image yet or not.
  *
- * A licensed photo's `credit` is overlaid bottom-right rather than captioned beneath,
- * so attribution never changes the layout the slot promises.
+ * Async because the current image comes from D1 (v2 §4.5); with nothing uploaded it
+ * renders exactly the labelled placeholder it always did. Nothing client-side imports
+ * this component, so awaiting here is safe.
  */
-export function PhotoSlot({
+export async function PhotoSlot({
   id,
-  slot,
   className = "",
   style,
   priority,
@@ -34,8 +35,7 @@ export function PhotoSlot({
   labelAlign = "bottom",
   overlay,
 }: {
-  id?: string;
-  slot?: Slot;
+  id: string;
   className?: string;
   style?: CSSProperties;
   /** Hero only: eager-load with high fetch priority. */
@@ -44,10 +44,10 @@ export function PhotoSlot({
   sizeHint?: { width: number; height: number };
   /** The hero anchors its copy to the bottom, so its label sits at the top instead. */
   labelAlign?: "bottom" | "top";
-  /** Darkens a real photo so light copy over it stays legible (§5.1.2). */
+  /** Darkens a real photo so light copy over it stays legible (v1 §5.1.2). */
   overlay?: boolean;
 }) {
-  const data = slot ?? photo(id!);
+  const data = await getPhotoSlot(id);
 
   if (data.src) {
     return (
@@ -56,8 +56,8 @@ export function PhotoSlot({
         <img
           src={data.src}
           alt={data.alt}
-          width={sizeHint?.width}
-          height={sizeHint?.height}
+          width={data.width ?? sizeHint?.width}
+          height={data.height ?? sizeHint?.height}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding={priority ? "sync" : "async"}

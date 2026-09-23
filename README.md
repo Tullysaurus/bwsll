@@ -58,8 +58,16 @@ src/app/(site)/   every other public page (compact footer)
 src/app/admin/    owner admin, gated by Cloudflare Access
 src/app/api/      /api/inquiries, /api/subscribe, /api/admin/subscribers (CSV)
 src/proxy.ts      verifies the Cloudflare Access JWT for /admin and /api/admin
+src/app/media/    streams R2 objects; src/app/files/ serves documents by slug
 migrations/       D1 schema + seed
+scripts/          provision / seed-files / export / import / verify (plain Node + wrangler)
+seed/             files, photos and fonts uploaded to R2 by `npm run seed:files`
+docs/             PLAN-v2.md, FILES.md, PHOTOS.md
 ```
+
+Nothing lives in `public/` that would shadow a route: the PDFs and photos moved to
+`seed/` in v2 because static assets are served *before* the Worker runs and would have
+hidden `/files/*` and `/media/*`.
 
 ### Acting on an inquiry
 
@@ -77,6 +85,21 @@ detail page:
 - **Status** — change new/replied/booked/closed inline in the list, no need to open the row.
 
 `/admin/subscribers` also takes addresses by hand, for people who sign up in the shop.
+
+### Photos and documents
+
+Both live in R2 and are managed from `/admin`:
+
+- **Photos** (`/admin/photos`) lists every spot on the site. Upload once and it appears;
+  a spot with no photo keeps its placeholder, so photos can arrive one at a time.
+  Images are resized in the browser to 2000px and converted to WebP (JPEG on Safari,
+  which silently ignores `canvas.toBlob("image/webp")`). Alt text is required.
+  `/admin/photos/library` shows everything uploaded and where it is used.
+- **Documents** (`/admin/documents`) replaces a PDF behind its existing public URL, so
+  `/files/vendor-agreement.pdf` keeps working forever. Old versions are never overwritten.
+
+Keys are content hashes, so the same file uploaded twice is stored once, and deleting one
+record only removes the object when nothing else points at it.
 
 ### Admin accounts and safety net
 

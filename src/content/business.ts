@@ -42,7 +42,11 @@ export const credit = {
   label: "Site by Tully",
 } as const;
 
-/** PDFs live in /public/files/. Drop the real files in over these names. */
+/**
+ * Public PDF links. These are the URLs the site has always used; since v2 they are served
+ * by `src/app/files/[name]/route.ts` out of R2, so the owner can replace a document at
+ * /admin/documents without any link changing. The slug is the filename without `.pdf`.
+ */
 export const files = {
   menu: "/files/liquid-lounge-menu.pdf",
   rentalAgreement: "/files/private-event-rental-agreement.pdf",
