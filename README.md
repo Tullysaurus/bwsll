@@ -41,7 +41,8 @@ The app degrades gracefully when things aren't configured yet:
 | `npm run dev` | Next dev server with local Cloudflare bindings |
 | `npm run build` | Full Cloudflare build (`opennextjs-cloudflare build`) — this is what Workers Builds runs |
 | `npm run build:next` | Plain `next build`, for a quick check |
-| `npm run typecheck` / `npm run lint` | Standard checks |
+| `npm run typecheck` / `npm run lint` / `npm test` | Standard checks |
+| `npm run db:migrate:prod` / `npm run cf:deploy:prod` | Same, against the client's account (`--env production`) |
 | `npm run db:migrate:local` / `npm run db:migrate` | Apply `migrations/` to the local / remote D1 database |
 | `npm run cf:preview` | Build with OpenNext and run the real Worker locally |
 | `npm run cf:deploy` | Build and deploy to Cloudflare |
@@ -76,6 +77,17 @@ detail page:
 - **Status** — change new/replied/booked/closed inline in the list, no need to open the row.
 
 `/admin/subscribers` also takes addresses by hand, for people who sign up in the shop.
+
+### Admin accounts and safety net
+
+- **Team** (`/admin/team`, owners only) adds people by email. They sign in at `/admin`
+  with a one-time code. New people default to **staff**, who can do the day-to-day work
+  but cannot manage the team, edit business or legal settings, delete anything forever, or
+  see workforce applications. `OWNER_EMAILS` in `wrangler.jsonc` is always an owner.
+- **History** — every admin change records who changed what, when. Each record has a
+  History link with **Restore this version** on older entries.
+- **Trash** (`/admin/trash`) — deletes are soft. Restore puts a record back as it was.
+  **Delete forever** is owner-only, and the audit trail survives it.
 
 ### Site credit
 

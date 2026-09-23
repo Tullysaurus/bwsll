@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { addSubscriber, removeSubscriber, saveInquiryNotes, setInquiryStatus } from "../../actions";
+import { guardPage } from "../../Guard";
+import { can } from "@/lib/permissions";
 import { getInquiry, isSubscriber } from "@/lib/db";
 import { formatCreatedAt, money } from "@/lib/format";
 import { isSchedulable } from "@/lib/inquiry-events";
@@ -33,9 +35,15 @@ const LABELS: Record<string, string> = {
 };
 
 export default async function InquiryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
   const { id } = await params;
   const inquiry = await getInquiry(Number(id));
   if (!inquiry) notFound();
+
+  // Staff must not reach a workforce application by typing its URL.
+  if (inquiry.type === "workforce" && !can(guard.user.role, "inquiries.workforce")) notFound();
 
   const subscribed = await isSubscriber(inquiry.email);
 
@@ -56,9 +64,14 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-[820px]">
-      <Link href="/admin/inquiries" className="link">
-        ← All inquiries
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link href="/admin/inquiries" className="link">
+          ← All inquiries
+        </Link>
+        <Link href={`/admin/history/inquiry/${inquiry.id}`} className="link">
+          History
+        </Link>
+      </div>
 
       <h1 className="display mt-4" style={{ fontSize: 32 }}>
         {inquiry.name}

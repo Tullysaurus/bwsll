@@ -1,9 +1,14 @@
+import { requireAdmin } from "@/lib/auth";
 import { listSubscribers } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/** CSV export for the admin subscribers screen. Gated by the Access check in middleware. */
+/**
+ * CSV export for the admin subscribers screen. The proxy proves identity; this route
+ * checks authorization itself, because route handlers never render the admin layout.
+ */
 export async function GET() {
+  await requireAdmin();
   const rows = await listSubscribers();
   const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
   const csv = [

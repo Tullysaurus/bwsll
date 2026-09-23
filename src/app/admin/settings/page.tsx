@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { saveSettings } from "../actions";
+import { guardPage } from "../Guard";
 import { rentalRows, rentalTiers } from "@/content/catering";
 import { getSettings } from "@/lib/settings";
 
@@ -7,6 +9,9 @@ export const dynamic = "force-dynamic";
 const HOUR_ROWS = 4;
 
 export default async function AdminSettingsPage() {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
   const settings = await getSettings();
   const hours = [...settings.hours];
   while (hours.length < HOUR_ROWS) hours.push({ label: "", value: "" });
@@ -18,6 +23,14 @@ export default async function AdminSettingsPage() {
       </h1>
       <p className="mt-2 text-[15px]" style={{ color: "var(--muted)" }}>
         These values appear in the top bar, the footer and on the private events page.
+      </p>
+      <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
+        <span style={{ color: "var(--muted)" }}>History:</span>
+        {["announcement", "closure_notice", "hours", "rental_rates", "response_time"].map((key) => (
+          <Link key={key} href={`/admin/history/setting/${key}`} className="link" style={{ fontSize: 14 }}>
+            {key.replace(/_/g, " ")}
+          </Link>
+        ))}
       </p>
 
       <form action={saveSettings} className="mt-8">

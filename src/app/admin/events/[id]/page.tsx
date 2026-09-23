@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { EventForm } from "../EventForm";
 import { InquiryPicker } from "../InquiryPicker";
 import { deleteEvent } from "../../actions";
+import { guardPage } from "../../Guard";
 import { DeleteEventButton } from "../DeleteEventButton";
 import { getEvent, getInquiry, listBookingInquiries } from "@/lib/db";
 import { eventDefaultsFromInquiry, inquirySummary, isSchedulable } from "@/lib/inquiry-events";
@@ -16,6 +17,9 @@ export default async function AdminEventPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ from?: string }>;
 }) {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
   const [{ id }, { from }] = await Promise.all([params, searchParams]);
 
   if (id === "new") {
@@ -76,9 +80,14 @@ export default async function AdminEventPage({
 
   return (
     <div>
-      <Link href="/admin/events" className="link">
-        ← All events
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link href="/admin/events" className="link">
+          ← All events
+        </Link>
+        <Link href={`/admin/history/event/${event.id}`} className="link">
+          History
+        </Link>
+      </div>
       <h1 className="display mt-4" style={{ fontSize: 32 }}>
         Edit event
       </h1>

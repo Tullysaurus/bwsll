@@ -4,13 +4,23 @@ import { env } from "./db";
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 /**
- * Verifies a Turnstile token. With no `TURNSTILE_SECRET` configured (local dev before
- * keys exist) verification is skipped so forms stay testable.
+ * Verifies a Turnstile token.
+ *
+ * Fails **closed** in production (v2 §3.4): a missing secret there is a misconfiguration,
+ * and silently accepting every submission would turn the public forms into an open relay.
+ * The skip only applies to development, so forms stay testable before keys exist.
  */
 export async function verifyTurnstile(token: string, ip?: string | null): Promise<boolean> {
   const secret = env().TURNSTILE_SECRET;
   if (!secret) {
-    console.warn("[turnstile] TURNSTILE_SECRET not set — skipping verification");
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[turnstile] TURNSTILE_SECRET is not set in production — rejecting the submission. " +
+          "Set it with `npx wrangler secret put TURNSTILE_SECRET`.",
+      );
+      return false;
+    }
+    console.warn("[turnstile] TURNSTILE_SECRET not set — skipping verification (development only)");
     return true;
   }
   if (!token) return false;

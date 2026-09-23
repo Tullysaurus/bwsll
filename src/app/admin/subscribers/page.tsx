@@ -1,10 +1,14 @@
 import { addSubscriber, removeSubscriber } from "../actions";
+import { guardPage } from "../Guard";
 import { listSubscribers } from "@/lib/db";
 import { formatCreatedAt } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function SubscribersPage() {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
   const rows = await listSubscribers();
 
   return (

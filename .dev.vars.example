@@ -18,10 +18,19 @@ SITE_URL=http://localhost:3000
 # unless CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD below are real and you hold a valid JWT).
 DEV_ADMIN=1
 
+# Comma-separated emails that are always active owners of /admin, so there is always a
+# way in even when the admin_users table is empty. Everyone else is added on /admin/team.
+OWNER_EMAILS=tully@tully.sh
+
+# Cloudflare Web Analytics beacon token. Leave empty to omit the beacon entirely.
+CF_ANALYTICS_TOKEN=
+
 NOTIFY_TO=info@bwsll.com
 NOTIFY_FROM=Liquid Lounge Website <website@notify.bwsll.com>
 
 # Cloudflare Turnstile — the "always passes" test pair, safe to commit.
+# In production a missing TURNSTILE_SECRET rejects every submission rather than
+# skipping verification (v2 §3.4).
 TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
 

@@ -12,7 +12,11 @@
     "db:migrate:local": "wrangler d1 migrations apply bwsll --local",
     "db:migrate": "wrangler d1 migrations apply bwsll --remote",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate:prod": "wrangler d1 migrations apply bwsll-prod --remote --env production",
+    "cf:deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production"
   },
   "dependencies": {
     "jose": "^6.2.12",
@@ -25,14 +29,16 @@
     "@cloudflare/workers-types": "^5.20260922.1",
     "@opennextjs/cloudflare": "^1.20.6",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "esbuild": "^0.25.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "^3.2.7",
     "wrangler": "^4.136.3"
   },
   "allowScripts": {

@@ -10,12 +10,28 @@
   },
   "observability": { "enabled": true },
 
+  // ---------------------------------------------------------------------------
+  // Top level = DEVELOPMENT (Tully's Cloudflare account, bwsll.tully.sh).
+  // `env.production` = the client's account.
+  //
+  // Wrangler does NOT inherit bindings or vars into a named environment, so every
+  // binding below is repeated in full under env.production. Changing one means
+  // changing both.
+  // ---------------------------------------------------------------------------
+
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "bwsll",
       "database_id": "8719de10-7e3f-46c2-a95d-3517383f2a29",
       "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "bwsll-media"
     }
   ],
 
@@ -29,10 +45,60 @@
     "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFAYA7me9m5Idl0x",
     "CF_ACCESS_TEAM_DOMAIN": "tullydev.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "82d61140386d437b4c379e118925b961cec2cf4210ac42430cd9f87083ccb5df"
+    "CF_ACCESS_AUD": "82d61140386d437b4c379e118925b961cec2cf4210ac42430cd9f87083ccb5df",
+    // Comma-separated. Always active owners, so a fresh deploy can always get in even
+    // when the admin_users table is empty.
+    "OWNER_EMAILS": "tully@tully.sh",
+    // Cloudflare Web Analytics beacon token. Leave empty to omit the beacon.
+    "CF_ANALYTICS_TOKEN": ""
+  },
+
+  "env": {
+    "production": {
+      "name": "bwsll-prod",
+      "workers_dev": false,
+      "preview_urls": false,
+      "observability": { "enabled": true },
+
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "bwsll-prod",
+          // TODO: set by `npm run provision -- --env production`
+          "database_id": "REPLACE_WITH_PROD_D1_DATABASE_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+
+      "r2_buckets": [
+        {
+          "binding": "MEDIA",
+          "bucket_name": "bwsll-media-prod"
+        }
+      ],
+
+      "vars": {
+        "SITE_URL": "https://bwsll.com",
+        "NOTIFY_TO": "info@bwsll.com",
+        "NOTIFY_FROM": "Liquid Lounge Website <website@notify.bwsll.com>",
+        // TODO: all four come from the client's own Cloudflare account.
+        "TURNSTILE_SITE_KEY": "REPLACE_WITH_PROD_TURNSTILE_SITE_KEY",
+        "CF_ACCESS_TEAM_DOMAIN": "REPLACE_WITH_PROD_ACCESS_TEAM_DOMAIN",
+        "CF_ACCESS_AUD": "REPLACE_WITH_PROD_ACCESS_AUD",
+        "OWNER_EMAILS": "REPLACE_WITH_OWNER_EMAILS",
+        "CF_ANALYTICS_TOKEN": ""
+      }
+    }
   }
 
-  // Secrets (set with `npx wrangler secret put <NAME>`):
-  //   RESEND_API_KEY
-  //   TURNSTILE_SECRET
+  // Secrets are per-environment too:
+  //   npx wrangler secret put RESEND_API_KEY
+  //   npx wrangler secret put TURNSTILE_SECRET
+  //   npx wrangler secret put RESEND_API_KEY   --env production
+  //   npx wrangler secret put TURNSTILE_SECRET --env production
 }

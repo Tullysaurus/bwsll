@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { addSubscriber, setInquiryStatus } from "../actions";
+import { guardPage } from "../Guard";
+import { can } from "@/lib/permissions";
 import { listInquiries, listSubscribers, type InquiryStatus, type InquiryType } from "@/lib/db";
 import { formatCreatedAt, longDate } from "@/lib/format";
 import { isSchedulable } from "@/lib/inquiry-events";
@@ -21,10 +23,20 @@ export default async function InquiriesPage({
 }: {
   searchParams: Promise<{ status?: string; type?: string }>;
 }) {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
+  // Workforce applicants can be minors, so staff never see them (v2 §3.2).
+  const maySeeWorkforce = can(guard.user.role, "inquiries.workforce");
+  const visibleTypes = maySeeWorkforce ? TYPES : TYPES.filter((t) => t !== "workforce");
+
   const params = await searchParams;
   const status = STATUSES.find((s) => s.value === params.status)?.value;
-  const type = TYPES.find((t) => t === params.type);
-  const [rows, subscribers] = await Promise.all([listInquiries({ status, type }), listSubscribers()]);
+  const type = visibleTypes.find((t) => t === params.type);
+  const [rows, subscribers] = await Promise.all([
+    listInquiries({ status, type, excludeTypes: maySeeWorkforce ? [] : ["workforce"] }),
+    listSubscribers(),
+  ]);
   const subscribed = new Set(subscribers.map((s) => s.email.toLowerCase()));
 
   const href = (next: { status?: string; type?: string }) => {
@@ -72,7 +84,7 @@ export default async function InquiriesPage({
             style={{ minHeight: 38, width: 170, padding: "6px 10px" }}
           >
             <option value="">All types</option>
-            {TYPES.map((t) => (
+            {visibleTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>

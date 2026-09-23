@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { countNewInquiries } from "@/lib/db";
+import { currentAdmin, currentEmail } from "@/lib/auth";
+import { can, ROLE_LABEL } from "@/lib/permissions";
+import { NoAccess } from "./Guard";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -10,16 +12,30 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const tabs = [
-  { href: "/admin/inquiries", label: "Inquiries" },
-  { href: "/admin/events", label: "Events" },
-  { href: "/admin/settings", label: "Settings" },
-  { href: "/admin/subscribers", label: "Subscribers" },
-];
-
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [headerList, newCount] = await Promise.all([headers(), countNewInquiries()]);
-  const email = headerList.get("x-access-email") ?? "";
+  const user = await currentAdmin();
+
+  // Not on the allowlist: replace the whole admin shell with an explanation. Pages and
+  // server actions check again themselves — this layout never runs for an action POST.
+  if (!user) {
+    return (
+      <div className="min-h-screen p-6 md:p-10" style={{ background: "var(--cream)" }}>
+        <NoAccess email={await currentEmail()} />
+      </div>
+    );
+  }
+
+  // Staff never see workforce applications, including in the "new" badge.
+  const newCount = await countNewInquiries(can(user.role, "inquiries.workforce") ? [] : ["workforce"]);
+
+  const tabs = [
+    { href: "/admin/inquiries", label: "Inquiries", badge: newCount },
+    { href: "/admin/events", label: "Events" },
+    { href: "/admin/settings", label: "Settings" },
+    { href: "/admin/subscribers", label: "Subscribers" },
+    { href: "/admin/trash", label: "Trash" },
+    ...(can(user.role, "team.manage") ? [{ href: "/admin/team", label: "Team" }] : []),
+  ];
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row" style={{ background: "var(--cream)" }}>
@@ -35,7 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Admin
           </p>
         </div>
-        <nav aria-label="Admin sections" className="flex gap-1 overflow-x-auto p-3 md:flex-col">
+        <nav aria-label="Admin sections" className="no-scrollbar flex gap-1 overflow-x-auto p-3 md:flex-col">
           {tabs.map((tab) => (
             <Link
               key={tab.href}
@@ -44,12 +60,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               style={{ color: "var(--ink)" }}
             >
               {tab.label}
-              {tab.href === "/admin/inquiries" && newCount > 0 ? (
+              {tab.badge ? (
                 <span
                   className="rounded-full px-2 py-[2px] text-[12px] font-semibold"
                   style={{ background: "var(--green)", color: "var(--paper)" }}
                 >
-                  {newCount}
+                  {tab.badge}
                 </span>
               ) : null}
             </Link>
@@ -63,7 +79,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           style={{ borderBottom: "1px solid var(--line)" }}
         >
           <p className="text-[14px]" style={{ color: "var(--muted)" }}>
-            {email ? `Signed in as ${email}` : "Signed in via Cloudflare Access"}
+            Signed in as {user.email} · {ROLE_LABEL[user.role]}
+            {user.fromConfig ? " (set in config)" : ""}
           </p>
           <Link href="/" className="link">
             View site

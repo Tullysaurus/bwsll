@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { guardPage } from "../Guard";
 import { getAllEvents, isPast } from "@/lib/db";
 import { fullEventLabel, kindLabel } from "@/lib/format";
 
@@ -9,6 +10,9 @@ export default async function AdminEventsPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
+  const guard = await guardPage();
+  if (!guard.ok) return guard.screen;
+
   const { tab } = await searchParams;
   const showPast = tab === "past";
   const all = await getAllEvents();

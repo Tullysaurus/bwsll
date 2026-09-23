@@ -60,7 +60,7 @@ Zero Trust → **Access → Applications → Add a self-hosted application**.
 | Application domain | `bwsll.com` |
 | Path | `admin` (add a second application for path `api/admin`) |
 | Session duration | 30 days |
-| Policy | Action **Allow**, rule **Emails** → the owner's address(es) |
+| Policy | Action **Allow**, Include **Everyone** |
 | Identity provider | One-time PIN |
 
 Then copy two values into `wrangler.jsonc` → `vars`:
@@ -71,6 +71,24 @@ Then copy two values into `wrangler.jsonc` → `vars`:
 `src/proxy.ts` verifies the `Cf-Access-Jwt-Assertion` header against those values, so the
 admin stays closed even if the Access application is later removed. Make sure `DEV_ADMIN`
 is **not** set in production.
+
+### Why the policy is "Everyone"
+
+The owner adds and removes staff themselves on `/admin/team`, so the allowlist lives in
+the app (the `admin_users` table) rather than in the Access policy — otherwise every new
+employee would need a Cloudflare login.
+
+**That makes `requireAdmin()` the real gate.** Access still proves the person owns the
+email they claim, but anyone who can receive email now reaches the Worker. So:
+
+- every admin page, server action and `/api/admin/*` route calls `requireAdmin()` itself
+  — the layout check does not cover server actions, which are separate POST endpoints;
+- `OWNER_EMAILS` (a var, comma-separated) is always an active owner, so a fresh deploy or
+  an emptied table can never lock everyone out;
+- someone signed in but not on the list gets a plain "you don't have access yet" page and
+  nothing else;
+- `npm test` pins the permissions map, including that staff cannot reach workforce
+  applications.
 
 > The OpenNext build prints *"Node.js middleware support is experimental in cloudflare"*.
 > That is inherent to Next 16: Proxy always runs on the Node.js runtime and the runtime

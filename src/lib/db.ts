@@ -12,6 +12,9 @@ export type Env = {
   CF_ACCESS_AUD?: string;
   SITE_URL?: string;
   DEV_ADMIN?: string;
+  MEDIA?: R2Bucket;
+  OWNER_EMAILS?: string;
+  CF_ANALYTICS_TOKEN?: string;
 };
 
 /**
@@ -28,6 +31,20 @@ export function env(): Env {
 
 export function db(): D1Database | null {
   return env().DB ?? null;
+}
+
+export function r2(): R2Bucket | null {
+  return env().MEDIA ?? null;
+}
+
+export function requireR2(): R2Bucket {
+  const bucket = r2();
+  if (!bucket) {
+    throw new Error(
+      "R2 binding `MEDIA` is not available. Run `npx wrangler r2 bucket create bwsll-media` and add the binding to wrangler.jsonc.",
+    );
+  }
+  return bucket;
 }
 
 /** Throws when D1 is missing — for writes, which must not silently no-op. */
@@ -53,6 +70,7 @@ export type EventRecord = {
   description: string | null;
   published: number;
   created_at: string;
+  deleted_at: string | null;
 };
 
 export type InquiryStatus = "new" | "replied" | "booked" | "closed";
@@ -68,9 +86,15 @@ export type InquiryRecord = {
   status: InquiryStatus;
   notes: string | null;
   created_at: string;
+  deleted_at: string | null;
 };
 
-export type SubscriberRecord = { email: string; source: string | null; created_at: string };
+export type SubscriberRecord = {
+  email: string;
+  source: string | null;
+  created_at: string;
+  deleted_at: string | null;
+};
 
 /** Local-date string (America/Chicago) used to decide "upcoming" against `starts_at`. */
 function nowLocalIso(): string {
@@ -91,7 +115,7 @@ export async function getUpcomingEvents(limit?: number): Promise<EventRecord[]> 
   const database = db();
   if (!database) return [];
   const sql =
-    "SELECT * FROM events WHERE published = 1 AND COALESCE(ends_at, starts_at) >= ?1 ORDER BY starts_at ASC" +
+    "SELECT * FROM events WHERE deleted_at IS NULL AND published = 1 AND COALESCE(ends_at, starts_at) >= ?1 ORDER BY starts_at ASC" +
     (limit ? " LIMIT ?2" : "");
   const stmt = limit
     ? database.prepare(sql).bind(nowLocalIso(), limit)
@@ -103,24 +127,33 @@ export async function getUpcomingEvents(limit?: number): Promise<EventRecord[]> 
 export async function getAllEvents(): Promise<EventRecord[]> {
   const database = db();
   if (!database) return [];
-  const { results } = await database.prepare("SELECT * FROM events ORDER BY starts_at DESC").all<EventRecord>();
+  const { results } = await database
+    .prepare("SELECT * FROM events WHERE deleted_at IS NULL ORDER BY starts_at DESC")
+    .all<EventRecord>();
   return results ?? [];
 }
 
 export async function getEvent(id: number): Promise<EventRecord | null> {
   const database = db();
   if (!database) return null;
-  return (await database.prepare("SELECT * FROM events WHERE id = ?1").bind(id).first<EventRecord>()) ?? null;
+  return (
+    (await database
+      .prepare("SELECT * FROM events WHERE id = ?1 AND deleted_at IS NULL")
+      .bind(id)
+      .first<EventRecord>()) ?? null
+  );
 }
 
 export function isPast(e: EventRecord): boolean {
   return (e.ends_at ?? e.starts_at) < nowLocalIso();
 }
 
-export async function listInquiries(opts: { status?: InquiryStatus; type?: InquiryType } = {}) {
+export async function listInquiries(
+  opts: { status?: InquiryStatus; type?: InquiryType; excludeTypes?: InquiryType[] } = {},
+) {
   const database = db();
   if (!database) return [];
-  const where: string[] = [];
+  const where: string[] = ["deleted_at IS NULL"];
   const binds: unknown[] = [];
   if (opts.status) {
     binds.push(opts.status);
@@ -130,7 +163,14 @@ export async function listInquiries(opts: { status?: InquiryStatus; type?: Inqui
     binds.push(opts.type);
     where.push(`type = ?${binds.length}`);
   }
-  const sql = `SELECT * FROM inquiries ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY created_at DESC, id DESC`;
+  if (opts.excludeTypes?.length) {
+    const placeholders = opts.excludeTypes.map((type) => {
+      binds.push(type);
+      return `?${binds.length}`;
+    });
+    where.push(`type NOT IN (${placeholders.join(", ")})`);
+  }
+  const sql = `SELECT * FROM inquiries WHERE ${where.join(" AND ")} ORDER BY created_at DESC, id DESC`;
   const { results } = await database
     .prepare(sql)
     .bind(...binds)
@@ -144,7 +184,7 @@ export async function listBookingInquiries(limit = 30): Promise<InquiryRecord[]>
   if (!database) return [];
   const { results } = await database
     .prepare(
-      "SELECT * FROM inquiries WHERE type IN ('event','catering') ORDER BY created_at DESC, id DESC LIMIT ?1",
+      "SELECT * FROM inquiries WHERE type IN ('event','catering') AND deleted_at IS NULL ORDER BY created_at DESC, id DESC LIMIT ?1",
     )
     .bind(limit)
     .all<InquiryRecord>();
@@ -154,14 +194,25 @@ export async function listBookingInquiries(limit = 30): Promise<InquiryRecord[]>
 export async function getInquiry(id: number): Promise<InquiryRecord | null> {
   const database = db();
   if (!database) return null;
-  return (await database.prepare("SELECT * FROM inquiries WHERE id = ?1").bind(id).first<InquiryRecord>()) ?? null;
+  return (
+    (await database
+      .prepare("SELECT * FROM inquiries WHERE id = ?1 AND deleted_at IS NULL")
+      .bind(id)
+      .first<InquiryRecord>()) ?? null
+  );
 }
 
-export async function countNewInquiries(): Promise<number> {
+export async function countNewInquiries(excludeTypes: InquiryType[] = []): Promise<number> {
   const database = db();
   if (!database) return 0;
+  const placeholders = excludeTypes.map((_, i) => `?${i + 1}`).join(", ");
   const row = await database
-    .prepare("SELECT COUNT(*) AS n FROM inquiries WHERE status = 'new'")
+    .prepare(
+      `SELECT COUNT(*) AS n FROM inquiries
+       WHERE status = 'new' AND deleted_at IS NULL
+       ${excludeTypes.length ? `AND type NOT IN (${placeholders})` : ""}`,
+    )
+    .bind(...excludeTypes)
     .first<{ n: number }>();
   return row?.n ?? 0;
 }
@@ -170,7 +221,7 @@ export async function isSubscriber(email: string): Promise<boolean> {
   const database = db();
   if (!database) return false;
   const row = await database
-    .prepare("SELECT email FROM subscribers WHERE email = ?1")
+    .prepare("SELECT email FROM subscribers WHERE email = ?1 AND deleted_at IS NULL")
     .bind(email.toLowerCase())
     .first<{ email: string }>();
   return Boolean(row);
@@ -180,7 +231,7 @@ export async function listSubscribers(): Promise<SubscriberRecord[]> {
   const database = db();
   if (!database) return [];
   const { results } = await database
-    .prepare("SELECT * FROM subscribers ORDER BY created_at DESC")
+    .prepare("SELECT * FROM subscribers WHERE deleted_at IS NULL ORDER BY created_at DESC")
     .all<SubscriberRecord>();
   return results ?? [];
 }

@@ -58,7 +58,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
   }
 });
 
-export async function saveSetting(key: keyof Settings, value: unknown) {
+export async function saveSetting(key: keyof Settings | (string & {}), value: unknown) {
   await requireDb()
     .prepare("INSERT INTO settings (key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
     .bind(key, JSON.stringify(value))

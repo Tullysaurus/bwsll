@@ -34,8 +34,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Upsert rather than INSERT OR IGNORE: soft deletes leave the row in place, so
+    // `OR IGNORE` would silently no-op and someone who had been removed could never
+    // rejoin — while the form still told them they were on the list.
     await requireDb()
-      .prepare("INSERT OR IGNORE INTO subscribers (email, source) VALUES (?1, ?2)")
+      .prepare(
+        `INSERT INTO subscribers (email, source) VALUES (?1, ?2)
+         ON CONFLICT(email) DO UPDATE SET deleted_at = NULL, source = excluded.source`,
+      )
       .bind(email.toLowerCase(), source ?? "footer")
       .run();
   } catch (err) {
