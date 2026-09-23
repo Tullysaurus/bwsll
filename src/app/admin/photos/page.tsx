@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { guardPage } from "../Guard";
 import { MediaUploader } from "../MediaUploader";
+import { DirtyForm } from "../DirtyForm";
 import { clearSlotMedia, saveSlotDetails } from "../media-actions";
 import { photoSlotIds } from "@/content/photos";
 import { getAllPhotoSlots } from "@/lib/photos";
@@ -83,7 +84,7 @@ export default async function PhotosPage() {
                   </p>
 
                   {slot.src ? (
-                    <form action={saveSlotDetails} className="mt-4 grid gap-3">
+                    <DirtyForm action={saveSlotDetails} className="mt-4 grid gap-3" saveLabel="Save details">
                       <input type="hidden" name="slotId" value={id} />
                       <input type="hidden" name="mediaId" value={slot.mediaId ?? ""} />
                       <div>
@@ -123,12 +124,7 @@ export default async function PhotosPage() {
                           />
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4">
-                        <button type="submit" className="btn btn-secondary">
-                          Save details
-                        </button>
-                      </div>
-                    </form>
+                    </DirtyForm>
                   ) : null}
 
                   <MediaUploader

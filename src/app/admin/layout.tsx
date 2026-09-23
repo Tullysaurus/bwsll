@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { countNewInquiries } from "@/lib/db";
 import { currentAdmin, currentEmail } from "@/lib/auth";
 import { can, ROLE_LABEL } from "@/lib/permissions";
+import { getSettings } from "@/lib/settings";
+import { AdminNav, type NavGroup } from "./AdminNav";
 import { NoAccess } from "./Guard";
 
 export const metadata: Metadata = {
@@ -27,22 +29,43 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Staff never see workforce applications, including in the "new" badge.
   const newCount = await countNewInquiries(can(user.role, "inquiries.workforce") ? [] : ["workforce"]);
+  const settings = await getSettings();
+  const bannerLive = Boolean(settings.closure_notice.trim());
 
-  const tabs = [
-    { href: "/admin/inquiries", label: "Inquiries", badge: newCount },
-    { href: "/admin/events", label: "Events" },
-    { href: "/admin/photos", label: "Photos" },
-    { href: "/admin/documents", label: "Documents" },
-    { href: "/admin/settings", label: "Settings" },
-    { href: "/admin/subscribers", label: "Subscribers" },
-    { href: "/admin/trash", label: "Trash" },
-    ...(can(user.role, "team.manage") ? [{ href: "/admin/team", label: "Team" }] : []),
+  const groups: NavGroup[] = [
+    { items: [{ href: "/admin", label: "Home" }] },
+    // The banner sits on top of every page of the public site, so it gets its own place
+    // in the menu rather than being buried in settings.
+    { title: "Banner", items: [{ href: "/admin/announcement", label: "Top bar message" }] },
+    {
+      title: "From visitors",
+      items: [
+        { href: "/admin/inquiries", label: "Messages", badge: newCount },
+        { href: "/admin/subscribers", label: "Mailing list" },
+      ],
+    },
+    {
+      title: "Your site",
+      items: [
+        { href: "/admin/events", label: "Events" },
+        { href: "/admin/photos", label: "Photos" },
+        { href: "/admin/documents", label: "Files & menus" },
+      ],
+    },
+    {
+      title: "Setup",
+      items: [
+        { href: "/admin/settings", label: "Hours & details" },
+        ...(can(user.role, "team.manage") ? [{ href: "/admin/team", label: "Who can sign in" }] : []),
+        { href: "/admin/trash", label: "Deleted items" },
+      ],
+    },
   ];
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row" style={{ background: "var(--cream)" }}>
       <aside
-        className="shrink-0 md:w-[220px]"
+        className="shrink-0 md:sticky md:top-0 md:h-screen md:w-[240px] md:overflow-y-auto"
         style={{ background: "var(--paper)", borderRight: "1px solid var(--line)" }}
       >
         <div className="p-5" style={{ borderBottom: "1px solid var(--line)" }}>
@@ -50,43 +73,31 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Liquid Lounge
           </p>
           <p className="text-[13px]" style={{ color: "var(--muted)" }}>
-            Admin
+            Website admin
           </p>
         </div>
-        <nav aria-label="Admin sections" className="no-scrollbar flex gap-1 overflow-x-auto p-3 md:flex-col">
-          {tabs.map((tab) => (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className="flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-[2px] px-3 py-2 text-[15px] font-medium no-underline"
-              style={{ color: "var(--ink)" }}
-            >
-              {tab.label}
-              {tab.badge ? (
-                <span
-                  className="rounded-full px-2 py-[2px] text-[12px] font-semibold"
-                  style={{ background: "var(--green)", color: "var(--paper)" }}
-                >
-                  {tab.badge}
-                </span>
-              ) : null}
-            </Link>
-          ))}
-        </nav>
+        <AdminNav groups={groups} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header
-          className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
-          style={{ borderBottom: "1px solid var(--line)" }}
+          className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+          style={{ borderBottom: "1px solid var(--line)", background: "var(--cream)" }}
         >
           <p className="text-[14px]" style={{ color: "var(--muted)" }}>
             Signed in as {user.email} · {ROLE_LABEL[user.role]}
             {user.fromConfig ? " (set in config)" : ""}
           </p>
-          <Link href="/" className="link">
-            View site
-          </Link>
+          <div className="flex items-center gap-4">
+            {bannerLive ? (
+              <Link href="/admin/announcement" className="link" style={{ fontSize: 14 }}>
+                Closed notice is showing
+              </Link>
+            ) : null}
+            <Link href="/" className="link">
+              View site
+            </Link>
+          </div>
         </header>
         <main className="flex-1 p-5 md:p-8">{children}</main>
       </div>

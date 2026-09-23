@@ -329,9 +329,6 @@ export async function saveSettings(formData: FormData) {
   };
 
   const updates: [string, unknown][] = [
-    ["announcement", String(formData.get("announcement") ?? "").trim()],
-    ["announcement_short", String(formData.get("announcement_short") ?? "").trim()],
-    ["closure_notice", String(formData.get("closure_notice") ?? "").trim()],
     ["hours_short", String(formData.get("hours_short") ?? "").trim()],
     ["response_time", String(formData.get("response_time") ?? "").trim()],
     ["hours", hours],
@@ -345,4 +342,26 @@ export async function saveSettings(formData: FormData) {
 
   // Hours and the announcement appear in the chrome of every page.
   revalidatePath("/", "layout");
+}
+
+/**
+ * The top-bar banner has its own screen, so it saves on its own — a settings save must
+ * never blank a message that wasn't on the form in front of the person saving.
+ */
+export async function saveAnnouncement(formData: FormData) {
+  const user = await requireAdmin();
+
+  const updates: [string, string][] = [
+    ["announcement", String(formData.get("announcement") ?? "").trim()],
+    ["announcement_short", String(formData.get("announcement_short") ?? "").trim()],
+    ["closure_notice", String(formData.get("closure_notice") ?? "").trim()],
+  ];
+
+  for (const [key, value] of updates) {
+    await saveSetting(key, value);
+    await recordSettingRevision(key, value, user.email);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/announcement");
 }

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { saveEvent, type EventFormState } from "../actions";
+import { SaveBar } from "../DirtyForm";
 import type { EventRecord } from "@/lib/db";
 import type { EventDefaults } from "@/lib/inquiry-events";
 
@@ -132,9 +133,12 @@ export function EventForm({ event, defaults }: { event?: EventRecord; defaults?:
         </div>
       </div>
 
-      <button type="submit" className="btn btn-primary mt-6" disabled={pending}>
-        {pending ? "Saving…" : event ? "Save event" : "Create event"}
-      </button>
+      <SaveBar
+        saveLabel={event ? "Save event" : "Create event"}
+        status={pending ? "saving" : state.message ? "error" : "idle"}
+        error={state.message ?? ""}
+        always={!event}
+      />
     </form>
   );
 }

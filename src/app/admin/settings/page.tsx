@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { saveSettings } from "../actions";
+import { DirtyForm } from "../DirtyForm";
 import { guardPage } from "../Guard";
 import { rentalRows, rentalTiers } from "@/content/catering";
 import { getSettings } from "@/lib/settings";
@@ -19,84 +20,23 @@ export default async function AdminSettingsPage() {
   return (
     <div className="max-w-[720px]">
       <h1 className="display" style={{ fontSize: 32 }}>
-        Settings
+        Hours &amp; details
       </h1>
-      <p className="mt-2 text-[15px]" style={{ color: "var(--muted)" }}>
-        These values appear in the top bar, the footer and on the private events page.
+      <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
+        Your opening hours, room rental prices and reply time. These show in the footer of
+        every page and on the private events page.
       </p>
-      <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
-        <span style={{ color: "var(--muted)" }}>History:</span>
-        {["announcement", "closure_notice", "hours", "rental_rates", "response_time"].map((key) => (
-          <Link key={key} href={`/admin/history/setting/${key}`} className="link" style={{ fontSize: 14 }}>
-            {key.replace(/_/g, " ")}
-          </Link>
-        ))}
+      <p className="mt-3 text-[15px]">
+        Looking for the message at the top of the site?{" "}
+        <Link href="/admin/announcement" className="link">
+          That&rsquo;s on the Top bar message page.
+        </Link>
       </p>
 
-      <form action={saveSettings} className="mt-8">
+      <DirtyForm action={saveSettings} className="mt-8" saveLabel="Save details">
         <fieldset className="border-0 p-0">
           <legend className="display" style={{ fontSize: 22 }}>
-            Top bar
-          </legend>
-
-          <div className="mt-4 grid gap-5">
-            <div>
-              <label htmlFor="announcement" className="field-label">
-                Announcement
-              </label>
-              <input
-                id="announcement"
-                name="announcement"
-                className="field-input"
-                defaultValue={settings.announcement}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="announcement_short" className="field-label">
-                Announcement (short, for phones)
-              </label>
-              <input
-                id="announcement_short"
-                name="announcement_short"
-                className="field-input"
-                defaultValue={settings.announcement_short}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="closure_notice" className="field-label">
-                Closure notice (optional)
-              </label>
-              <input
-                id="closure_notice"
-                name="closure_notice"
-                className="field-input"
-                defaultValue={settings.closure_notice}
-              />
-              <p className="field-hint">
-                Shows in the top bar in green — clear it when you reopen.
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="hours_short" className="field-label">
-                Short hours line
-              </label>
-              <input
-                id="hours_short"
-                name="hours_short"
-                className="field-input"
-                defaultValue={settings.hours_short}
-              />
-              <p className="field-hint">Example: Mon–Sat · 7am–4pm</p>
-            </div>
-          </div>
-        </fieldset>
-
-        <fieldset className="mt-10 border-0 p-0">
-          <legend className="display" style={{ fontSize: 22 }}>
-            Hours
+            Opening hours
           </legend>
           <p className="mt-1 text-[14px]" style={{ color: "var(--muted)" }}>
             Leave a row blank to remove it.
@@ -131,14 +71,27 @@ export default async function AdminSettingsPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-5">
+            <label htmlFor="hours_short" className="field-label">
+              One-line version, for the top of the site
+            </label>
+            <input
+              id="hours_short"
+              name="hours_short"
+              className="field-input"
+              defaultValue={settings.hours_short}
+            />
+            <p className="field-hint">Example: Mon–Sat · 7am–4pm</p>
+          </div>
         </fieldset>
 
         <fieldset className="mt-10 border-0 p-0">
           <legend className="display" style={{ fontSize: 22 }}>
-            Space rental rates
+            Room rental prices
           </legend>
           <p className="mt-1 text-[14px]" style={{ color: "var(--muted)" }}>
-            Free text, e.g. &ldquo;$75&rdquo;. Blank rates show as &ldquo;Ask us&rdquo; on the site.
+            Free text, e.g. &ldquo;$75&rdquo;. Blank prices show as &ldquo;Ask us&rdquo; on the site.
           </p>
           {rentalRows.map((row) => (
             <div key={row.id} className="mt-5">
@@ -170,7 +123,7 @@ export default async function AdminSettingsPage() {
           </legend>
           <div className="mt-4">
             <label htmlFor="response_time" className="field-label">
-              Response time promise
+              How soon you promise to reply
             </label>
             <input
               id="response_time"
@@ -179,15 +132,20 @@ export default async function AdminSettingsPage() {
               defaultValue={settings.response_time}
             />
             <p className="field-hint">
-              Shown after someone submits a form: &ldquo;We&rsquo;ll reply by email within …&rdquo;
+              Shown after someone sends a form: &ldquo;We&rsquo;ll reply by email within …&rdquo;
             </p>
           </div>
         </fieldset>
 
-        <button type="submit" className="btn btn-primary mt-8">
-          Save settings
-        </button>
-      </form>
+        <p className="mt-8 flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
+          <span style={{ color: "var(--muted)" }}>Past versions:</span>
+          {["hours", "rental_rates", "response_time"].map((key) => (
+            <Link key={key} href={`/admin/history/setting/${key}`} className="link" style={{ fontSize: 14 }}>
+              {key.replace(/_/g, " ")}
+            </Link>
+          ))}
+        </p>
+      </DirtyForm>
     </div>
   );
 }
