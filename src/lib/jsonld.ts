@@ -1,72 +1,37 @@
-import { business } from "@/content/business";
 import type { EventRecord } from "./db";
-import type { HoursRow } from "./settings";
+import type { Business } from "./content";
+import { DAY_KEYS, DAY_SCHEMA, isClosed, type WeekHours } from "./hours";
 import { parseLocal } from "./format";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-/** "7am", "7:15am", "16:00" → "07:00" (24-hour, as schema.org wants). */
-function to24h(raw: string): string | null {
-  const match = raw.trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
-  if (!match) return null;
-  let hour = Number(match[1]);
-  const minute = match[2] ?? "00";
-  const period = match[3];
-  if (period === "pm" && hour !== 12) hour += 12;
-  if (period === "am" && hour === 12) hour = 0;
-  if (hour > 23) return null;
-  return `${String(hour).padStart(2, "0")}:${minute}`;
-}
-
-/** "Monday–Saturday" / "Mon, Wed" → schema.org day names. */
-function dayNames(label: string): string[] {
-  const normalise = (part: string) => {
-    const clean = part.trim().toLowerCase();
-    return DAYS.find((day) => day.toLowerCase().startsWith(clean.slice(0, 3))) ?? null;
-  };
-  const range = label.split(/[–—-]/);
-  if (range.length === 2) {
-    const from = normalise(range[0]);
-    const to = normalise(range[1]);
-    if (from && to) {
-      const start = DAYS.indexOf(from);
-      const end = DAYS.indexOf(to);
-      const out: string[] = [];
-      for (let i = start; ; i = (i + 1) % 7) {
-        out.push(DAYS[i]);
-        if (i === end) break;
-      }
-      return out;
-    }
-  }
-  return label
-    .split(/[,/]/)
-    .map(normalise)
-    .filter((d): d is string => Boolean(d));
-}
-
-export function openingHours(hours: HoursRow[]) {
+/** schema.org opening hours, read straight off the structured week. */
+export function openingHours(hours: WeekHours) {
   const spec: Record<string, unknown>[] = [];
-  for (const row of hours) {
-    if (/closed/i.test(row.value)) continue;
-    const [openRaw, closeRaw] = row.value.split(/[–—-]/);
-    const opens = openRaw ? to24h(openRaw) : null;
-    const closes = closeRaw ? to24h(closeRaw) : null;
-    const days = dayNames(row.label);
-    if (!opens || !closes || days.length === 0) continue;
-    spec.push({ "@type": "OpeningHoursSpecification", dayOfWeek: days, opens, closes });
+  for (const key of DAY_KEYS) {
+    const day = hours[key];
+    if (isClosed(day)) continue;
+    const existing = spec.find((row) => row.opens === day.open && row.closes === day.close);
+    if (existing) {
+      (existing.dayOfWeek as string[]).push(DAY_SCHEMA[key]);
+      continue;
+    }
+    spec.push({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [DAY_SCHEMA[key]],
+      opens: day.open,
+      closes: day.close,
+    });
   }
   return spec;
 }
 
-export function cafeJsonLd(hours: HoursRow[], siteUrl: string) {
+export function cafeJsonLd(business: Business, hours: WeekHours, siteUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "CafeOrCoffeeShop",
     name: business.name,
     alternateName: business.shortName,
     url: siteUrl,
-    telephone: `+1-918-851-1982`,
+    telephone: business.phoneHref.replace("tel:", ""),
     email: business.email,
     address: {
       "@type": "PostalAddress",
@@ -86,7 +51,7 @@ export function cafeJsonLd(hours: HoursRow[], siteUrl: string) {
 }
 
 /** Events are only published as structured data when they're open to the public. */
-export function eventJsonLd(event: EventRecord, siteUrl: string) {
+export function eventJsonLd(business: Business, event: EventRecord, siteUrl: string) {
   const { y, m, d, hh, mm } = parseLocal(event.starts_at);
   const pad = (n: number) => String(n).padStart(2, "0");
   const startDate = `${y}-${pad(m)}-${pad(d)}T${pad(hh)}:${pad(mm)}:00-05:00`;

@@ -97,10 +97,11 @@ export default async function AdminHome() {
       <ul className="mt-3 grid gap-2 text-[17px]">
         {[
           { href: "/admin/events/new", label: "Add an event" },
-          { href: "/admin/announcement", label: "Say we're closed today" },
+          { href: "/admin/hours", label: "Mark a day closed" },
           { href: "/admin/photos", label: "Change a photo on the site" },
           { href: "/admin/documents", label: "Put up a new menu or flyer" },
-          { href: "/admin/settings", label: "Change opening hours" },
+          { href: "/admin/hours", label: "Change opening hours" },
+          { href: "/admin/text", label: "Reword something on a page" },
         ].map((item) => (
           <li key={item.label}>
             <Link href={item.href} className="link">

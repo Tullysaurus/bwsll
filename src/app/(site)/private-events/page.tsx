@@ -7,7 +7,7 @@ import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { files } from "@/content/business";
 import { goodToKnow, rentalRows, rentalTiers } from "@/content/catering";
-import { privateEvents } from "@/content/copy";
+import { getCopy } from "@/lib/content";
 import { getSettings, rateOrAsk } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PrivateEventsPage() {
-  const settings = await getSettings();
+  const [settings, { privateEvents }] = await Promise.all([getSettings(), getCopy()]);
   const siteKey = turnstileSiteKey();
   const rates = settings.rental_rates;
 

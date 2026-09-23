@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
-import { termsSections } from "@/content/legal";
+import { getLegal } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Terms of use",
@@ -8,8 +8,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const legal = await getLegal();
   return (
-    <LegalPage eyebrow="Legal" titleStart="Terms of" titleItalic="use." sections={termsSections} />
+    <LegalPage eyebrow="Legal" titleStart="Terms of" titleItalic="use." sections={legal.terms}
+      lastUpdated={legal.lastUpdated} />
   );
 }

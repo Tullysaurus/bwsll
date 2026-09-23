@@ -2,7 +2,6 @@ import "server-only";
 import { cache } from "react";
 import { db, requireDb } from "./db";
 
-export type HoursRow = { label: string; value: string };
 export type RentalRates = {
   business: { g10: string; g20: string; g40: string };
   after: { g10: string; g20: string; g40: string };
@@ -11,9 +10,8 @@ export type RentalRates = {
 export type Settings = {
   announcement: string;
   announcement_short: string;
+  /** A free-text override for the top bar. Dated closures live in the `closures` table. */
   closure_notice: string;
-  hours: HoursRow[];
-  hours_short: string;
   response_time: string;
   rental_rates: RentalRates;
 };
@@ -23,11 +21,6 @@ export const defaultSettings: Settings = {
   announcement: "Now open at GEM · 609 E. Pine St., Tulsa",
   announcement_short: "Now open at GEM",
   closure_notice: "",
-  hours: [
-    { label: "Monday–Saturday", value: "7am–4pm" },
-    { label: "Sunday", value: "Closed" },
-  ],
-  hours_short: "Mon–Sat · 7am–4pm",
   // TBD: owner to confirm the promised reply window.
   response_time: "2 business days",
   // TBD: owner to supply six rates. Empty strings render "Ask us".
@@ -37,25 +30,35 @@ export const defaultSettings: Settings = {
   },
 };
 
-/** One read per request, shared by the header, footer and every page. */
-export const getSettings = cache(async (): Promise<Settings> => {
+/**
+ * Every settings row, read once per request. Both this file and `content.ts` merge their
+ * own defaults over it, so the whole site costs one query no matter how much is editable.
+ */
+export const settingRows = cache(async (): Promise<Map<string, string>> => {
+  const map = new Map<string, string>();
   const database = db();
-  if (!database) return defaultSettings;
+  if (!database) return map;
   try {
     const { results } = await database.prepare("SELECT key, value FROM settings").all<{ key: string; value: string }>();
-    const merged: Settings = { ...defaultSettings };
-    for (const row of results ?? []) {
-      if (!(row.key in defaultSettings)) continue;
-      try {
-        (merged as Record<string, unknown>)[row.key] = JSON.parse(row.value);
-      } catch {
-        /* keep the default when a row holds invalid JSON */
-      }
-    }
-    return merged;
+    for (const row of results ?? []) map.set(row.key, row.value);
   } catch {
-    return defaultSettings;
+    // An un-migrated database must not take the public site down.
   }
+  return map;
+});
+
+/** One read per request, shared by the header, footer and every page. */
+export const getSettings = cache(async (): Promise<Settings> => {
+  const merged: Settings = { ...defaultSettings };
+  for (const [key, value] of await settingRows()) {
+    if (!(key in defaultSettings)) continue;
+    try {
+      (merged as Record<string, unknown>)[key] = JSON.parse(value);
+    } catch {
+      /* keep the default when a row holds invalid JSON */
+    }
+  }
+  return merged;
 });
 
 export async function saveSetting(key: keyof Settings | (string & {}), value: unknown) {

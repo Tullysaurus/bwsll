@@ -4,7 +4,7 @@ import { Button } from "@/components/Button";
 import { EventList } from "@/components/EventRow";
 import { JsonLd } from "@/components/JsonLd";
 import { PageIntro } from "@/components/Typography";
-import { events as copy } from "@/content/copy";
+import { getBusiness, getCopy } from "@/lib/content";
 import { getUpcomingEvents, type EventKind } from "@/lib/db";
 import { eventJsonLd } from "@/lib/jsonld";
 import { monthYearKey, monthYearLabel } from "@/lib/format";
@@ -30,7 +30,7 @@ export default async function EventsPage({
 }) {
   const { kind } = await searchParams;
   const activeKind = FILTERS.find((f) => f.kind === kind)?.kind;
-  const all = await getUpcomingEvents();
+  const [all, business, { events: copy }] = await Promise.all([getUpcomingEvents(), getBusiness(), getCopy()]);
   const shown = activeKind ? all.filter((e) => e.kind === activeKind) : all;
 
   // Group into months, preserving the ascending order the query returned.
@@ -47,7 +47,7 @@ export default async function EventsPage({
       {all
         .filter((event) => event.kind === "public")
         .map((event) => (
-          <JsonLd key={event.id} data={eventJsonLd(event, siteUrl())} />
+          <JsonLd key={event.id} data={eventJsonLd(business, event, siteUrl())} />
         ))}
 
       <PageIntro

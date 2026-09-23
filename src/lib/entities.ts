@@ -6,7 +6,7 @@
  * means adding it here too — otherwise it silently stops being versioned.
  */
 
-export const ENTITY_TYPES = ["event", "inquiry", "subscriber", "setting"] as const;
+export const ENTITY_TYPES = ["event", "inquiry", "subscriber", "closure", "setting"] as const;
 export type EntityType = (typeof ENTITY_TYPES)[number];
 
 export type EntityDef = {
@@ -70,6 +70,29 @@ export const ENTITIES: Record<Exclude<EntityType, "setting">, EntityDef> = {
     href: (id) => `/admin/inquiries/${id}`,
     describe: (s) => `${str(s.type)} request from ${str(s.name, "someone")}`,
   },
+  closure: {
+    table: "closures",
+    idColumn: "id",
+    idIsText: false,
+    columns: [
+      "id",
+      "start_date",
+      "end_date",
+      "closed",
+      "open_time",
+      "close_time",
+      "note",
+      "created_at",
+      "deleted_at",
+    ],
+    singular: "Closure",
+    plural: "Closures",
+    href: () => "/admin/hours",
+    describe: (s) =>
+      `${s.closed ? "Closed" : "Special hours"} ${str(s.start_date)}${
+        s.end_date && s.end_date !== s.start_date ? `–${str(s.end_date)}` : ""
+      }`,
+  },
   subscriber: {
     table: "subscribers",
     idColumn: "email",
@@ -90,6 +113,7 @@ export const ENTITY_LABEL: Record<EntityType, string> = {
   event: "Event",
   inquiry: "Inquiry",
   subscriber: "Subscriber",
+  closure: "Closure",
   setting: "Setting",
 };
 

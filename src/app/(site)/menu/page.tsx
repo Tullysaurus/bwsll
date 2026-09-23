@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Button } from "@/components/Button";
+import { OrderButtons } from "@/components/OrderButtons";
 import { MenuTable, SimpleTable } from "@/components/MenuTable";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { SignatureGrid } from "@/components/SignatureGrid";
 import { Eyebrow, PageIntro } from "@/components/Typography";
 import { files } from "@/content/business";
-import { menuPage } from "@/content/copy";
+import { getCopy } from "@/lib/content";
 import { espresso, flavorShots, food, menuSections, signatureGroups, sizedTables } from "@/content/menu";
 
 export const metadata: Metadata = {
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/menu" },
 };
 
-export default function MenuPage() {
+export default async function MenuPage() {
+  const { menuPage } = await getCopy();
   return (
     <>
       <PageIntro
@@ -29,6 +31,7 @@ export default function MenuPage() {
             <Button href={files.menu} variant="secondary">
               Download PDF menu
             </Button>
+            <OrderButtons className="lg:justify-end" />
             <p className="caption" style={{ color: "var(--muted)" }}>
               {menuPage.caption}
             </p>

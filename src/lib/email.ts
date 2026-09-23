@@ -1,6 +1,6 @@
 import "server-only";
 import { env } from "./db";
-import { business } from "@/content/business";
+import { getBusiness } from "./content";
 import type { InquiryInput } from "./schemas";
 import { money } from "./format";
 
@@ -60,7 +60,7 @@ const escapeHtml = (s: string) =>
  */
 export async function sendInquiryNotification(input: InquiryInput, id: number): Promise<void> {
   const { RESEND_API_KEY, NOTIFY_TO, NOTIFY_FROM, SITE_URL } = env();
-  const to = NOTIFY_TO || business.email;
+  const to = NOTIFY_TO || (await getBusiness()).email;
   const from = NOTIFY_FROM || `Liquid Lounge Website <website@notify.bwsll.com>`;
   const adminUrl = `${SITE_URL || "https://bwsll.com"}/admin/inquiries/${id}`;
 

@@ -50,12 +50,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: "/admin/events", label: "Events" },
         { href: "/admin/photos", label: "Photos" },
         { href: "/admin/documents", label: "Files & menus" },
+        { href: "/admin/text", label: "Page text" },
       ],
     },
     {
       title: "Setup",
       items: [
-        { href: "/admin/settings", label: "Hours & details" },
+        { href: "/admin/hours", label: "Hours & closed days" },
+        ...(can(user.role, "settings.business")
+          ? [{ href: "/admin/business", label: "Business details" }]
+          : []),
+        { href: "/admin/settings", label: "Prices & replies" },
+        ...(can(user.role, "settings.legal") ? [{ href: "/admin/legal", label: "Privacy & terms" }] : []),
         ...(can(user.role, "team.manage") ? [{ href: "/admin/team", label: "Who can sign in" }] : []),
         { href: "/admin/trash", label: "Deleted items" },
       ],

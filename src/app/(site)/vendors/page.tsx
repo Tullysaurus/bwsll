@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { InquiryForm } from "@/components/InquiryForm";
 import { PageIntro } from "@/components/Typography";
 import { files } from "@/content/business";
-import { vendors } from "@/content/copy";
+import { getCopy } from "@/lib/content";
 import { getSettings } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function VendorsPage() {
-  const settings = await getSettings();
+  const [settings, { vendors }] = await Promise.all([getSettings(), getCopy()]);
 
   return (
     <>

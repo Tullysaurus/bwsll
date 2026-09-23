@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { business, credit, socialLinks } from "@/content/business";
-import { getSettings } from "@/lib/settings";
+import { credit } from "@/content/business";
+import { getBusiness, getHours, socialLinksOf } from "@/lib/content";
+import { weeklyLabels } from "@/lib/hours";
 import { turnstileSiteKey } from "@/lib/turnstile";
 import { Eyebrow } from "./Typography";
 import { NewsletterForm } from "./NewsletterForm";
@@ -25,7 +26,8 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 
 /** §4.6 — `compact` drops the newsletter column on inner pages. */
 export async function SiteFooter({ compact }: { compact?: boolean }) {
-  const settings = await getSettings();
+  const [business, hours] = await Promise.all([getBusiness(), getHours()]);
+  const socialLinks = socialLinksOf(business);
   const siteKey = turnstileSiteKey();
   const year = new Date().getFullYear();
 
@@ -78,10 +80,10 @@ export async function SiteFooter({ compact }: { compact?: boolean }) {
           <div>
             <FooterHeading>Hours</FooterHeading>
             <ul className="space-y-1 text-[16px] leading-[1.8]">
-              {settings.hours.map((row) => (
+              {weeklyLabels(hours).map((row) => (
                 <li key={row.label}>
-                  {row.label === "Sunday" && row.value === "Closed" ? (
-                    <span style={{ color: "var(--footer-muted)" }}>Closed Sunday</span>
+                  {row.value === "Closed" ? (
+                    <span style={{ color: "var(--footer-muted)" }}>Closed {row.label}</span>
                   ) : (
                     <>
                       {row.label}

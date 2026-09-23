@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { ArrowLink, Button } from "@/components/Button";
 import { InquiryForm } from "@/components/InquiryForm";
 import { JsonLd } from "@/components/JsonLd";
+import { OrderButtons } from "@/components/OrderButtons";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow } from "@/components/Typography";
-import { business, socialLinks } from "@/content/business";
-import { visit } from "@/content/copy";
+import { getBusiness, getCopy, getHours, socialLinksOf } from "@/lib/content";
+import { weeklyLabels } from "@/lib/hours";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
 import { siteUrl } from "@/lib/site";
@@ -19,11 +20,17 @@ export const metadata: Metadata = {
 };
 
 export default async function VisitPage() {
-  const settings = await getSettings();
+  const [settings, business, { visit }, hours] = await Promise.all([
+    getSettings(),
+    getBusiness(),
+    getCopy(),
+    getHours(),
+  ]);
+  const socialLinks = socialLinksOf(business);
 
   return (
     <>
-      <JsonLd data={cafeJsonLd(settings.hours, siteUrl())} />
+      <JsonLd data={cafeJsonLd(business, hours, siteUrl())} />
 
       <section className="shell gutter pt-14 pb-16 md:pt-20 md:pb-24">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
@@ -35,7 +42,7 @@ export default async function VisitPage() {
             <div className="mt-10">
               <Eyebrow>Hours</Eyebrow>
               <dl className="rule-top mt-4 max-w-[420px]">
-                {settings.hours.map((row) => (
+                {weeklyLabels(hours).map((row) => (
                   <div
                     key={row.label}
                     className="flex items-baseline justify-between gap-6 py-3"
@@ -46,6 +53,7 @@ export default async function VisitPage() {
                   </div>
                 ))}
               </dl>
+              <OrderButtons className="mt-6" />
             </div>
 
             <div className="mt-10">

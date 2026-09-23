@@ -1,17 +1,18 @@
 import { PageIntro } from "./Typography";
 import type { LegalSection } from "@/content/legal";
-import { lastUpdated } from "@/content/legal";
 
 export function LegalPage({
   eyebrow,
   titleStart,
   titleItalic,
   sections,
+  lastUpdated,
 }: {
   eyebrow: string;
   titleStart: string;
   titleItalic: string;
   sections: LegalSection[];
+  lastUpdated: string;
 }) {
   return (
     <>

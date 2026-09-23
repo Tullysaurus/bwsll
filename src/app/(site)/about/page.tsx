@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Button } from "@/components/Button";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { PageIntro } from "@/components/Typography";
-import { about } from "@/content/copy";
+import { getCopy } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Our story",
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { about } = await getCopy();
   return (
     <>
       <PageIntro eyebrow={about.eyebrow} titleStart={about.h1a} titleItalic={about.h1b} />

@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
 import { nav } from "@/content/business";
 
-export function SiteHeader() {
+export function SiteHeader({ orderAhead = "" }: { orderAhead?: string }) {
   const pathname = usePathname();
 
   return (
@@ -46,13 +46,18 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="hidden xl:block">
+        <div className="hidden items-center gap-3 xl:flex">
+          {orderAhead ? (
+            <Button href={orderAhead} variant="gold" compact>
+              Order ahead
+            </Button>
+          ) : null}
           <Button href="/private-events#inquire" compact>
             Plan an event
           </Button>
         </div>
 
-        <MobileNav />
+        <MobileNav orderAhead={orderAhead} />
       </div>
     </header>
   );

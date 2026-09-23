@@ -16,7 +16,7 @@ import {
   softDelete,
 } from "@/lib/revisions";
 import { eventSchema, fieldErrors } from "@/lib/schemas";
-import { saveSetting, type HoursRow, type RentalRates } from "@/lib/settings";
+import { saveSetting, type RentalRates } from "@/lib/settings";
 import { ENTITIES, type EntityType } from "@/lib/entities";
 
 /**
@@ -308,13 +308,6 @@ async function activeOwnerCount(): Promise<number> {
 export async function saveSettings(formData: FormData) {
   const user = await requireAdmin();
 
-  const hours: HoursRow[] = [];
-  for (let i = 0; i < 8; i += 1) {
-    const label = String(formData.get(`hours_label_${i}`) ?? "").trim();
-    const value = String(formData.get(`hours_value_${i}`) ?? "").trim();
-    if (label && value) hours.push({ label, value });
-  }
-
   const rentalRates: RentalRates = {
     business: {
       g10: String(formData.get("rate_business_g10") ?? "").trim(),
@@ -329,9 +322,7 @@ export async function saveSettings(formData: FormData) {
   };
 
   const updates: [string, unknown][] = [
-    ["hours_short", String(formData.get("hours_short") ?? "").trim()],
     ["response_time", String(formData.get("response_time") ?? "").trim()],
-    ["hours", hours],
     ["rental_rates", rentalRates],
   ];
 
@@ -340,7 +331,7 @@ export async function saveSettings(formData: FormData) {
     await recordSettingRevision(key, value, user.email);
   }
 
-  // Hours and the announcement appear in the chrome of every page.
+  // Rates and the reply promise appear in the chrome of every page.
   revalidatePath("/", "layout");
 }
 

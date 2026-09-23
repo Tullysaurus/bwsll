@@ -9,7 +9,7 @@ import { Logo } from "./Logo";
 import { nav } from "@/content/business";
 
 /** Full-screen drawer for < 1200px (§4.2): focus-trapped, Esc closes, body scroll locked. */
-export function MobileNav() {
+export function MobileNav({ orderAhead = "" }: { orderAhead?: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -116,7 +116,12 @@ export function MobileNav() {
             })}
           </nav>
 
-          <div className="gutter pb-10 pt-8">
+          <div className="gutter grid gap-3 pb-10 pt-8">
+            {orderAhead ? (
+              <Button href={orderAhead} variant="gold" fullWidth onClick={() => setOpen(false)}>
+                Order ahead
+              </Button>
+            ) : null}
             <Button href="/private-events#inquire" fullWidth onClick={() => setOpen(false)}>
               Plan an event
             </Button>

@@ -1,11 +1,20 @@
+import { getClosures, todayLocal } from "@/lib/closures";
+import { getHours } from "@/lib/content";
+import { closureBanner, shortLabel } from "@/lib/hours";
 import { getSettings } from "@/lib/settings";
 
-/** §4.1 — a closure notice replaces the announcement and turns the bar green. */
+/**
+ * §4.1 — a closure replaces the announcement and turns the bar green. The notice is
+ * either typed by hand on the Top bar message screen or generated from a dated closure
+ * within the next week, whichever is set; the typed one wins.
+ */
 export async function AnnouncementBar() {
-  const settings = await getSettings();
-  const closure = settings.closure_notice.trim();
+  const [settings, hours, closures] = await Promise.all([getSettings(), getHours(), getClosures()]);
+
+  const closure = settings.closure_notice.trim() || closureBanner(closures, todayLocal());
   const left = closure || settings.announcement;
   const leftShort = closure || settings.announcement_short;
+  const hoursShort = shortLabel(hours);
 
   return (
     <div
@@ -21,12 +30,12 @@ export async function AnnouncementBar() {
           {left}
         </p>
         <p className="hidden md:block" style={{ color: "var(--footer-text)" }}>
-          {settings.hours_short}
+          {hoursShort}
         </p>
 
         {/* Mobile: one centred line. */}
         <p className="w-full text-center md:hidden" style={{ fontWeight: 500 }}>
-          {leftShort} · {settings.hours_short.replace(" · ", " ")}
+          {leftShort} · {hoursShort.replace(" · ", " ")}
         </p>
       </div>
     </div>

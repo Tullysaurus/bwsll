@@ -1,5 +1,5 @@
-import { business } from "@/content/business";
-import { getSettings } from "@/lib/settings";
+import { getBusiness, getHours } from "@/lib/content";
+import { weeklyLabels } from "@/lib/hours";
 import { ClockIcon, PhoneIcon, PinIcon } from "./Icons";
 
 type Column = {
@@ -12,9 +12,10 @@ type Column = {
 
 /** §5.1.3 — three equal columns on desktop, stacked label/value rows on mobile. */
 export async function InfoStrip() {
-  const settings = await getSettings();
-  const primaryHours = settings.hours[0];
-  const secondaryHours = settings.hours[1];
+  const [business, hours] = await Promise.all([getBusiness(), getHours()]);
+  const rows = weeklyLabels(hours);
+  const primaryHours = rows[0];
+  const secondaryHours = rows[1];
 
   const abbreviate = (label: string) =>
     label.replace("Monday", "Mon").replace("Saturday", "Sat").replace("Sunday", "Sun");

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Work_Sans } from "next/font/google";
-import { business, credit } from "@/content/business";
+import { credit } from "@/content/business";
+import { getBusiness } from "@/lib/content";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -19,6 +20,7 @@ const workSans = Work_Sans({
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = siteUrl();
+  const business = await getBusiness();
   return {
   metadataBase: new URL(site),
   title: {
