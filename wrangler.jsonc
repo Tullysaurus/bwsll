@@ -48,7 +48,7 @@
     "CF_ACCESS_AUD": "82d61140386d437b4c379e118925b961cec2cf4210ac42430cd9f87083ccb5df",
     // Comma-separated. Always active owners, so a fresh deploy can always get in even
     // when the admin_users table is empty.
-    "OWNER_EMAILS": "tully@tully.sh",
+    "OWNER_EMAILS": "tullycockerham@gmail.com",
     // Cloudflare Web Analytics beacon token. Leave empty to omit the beacon.
     "CF_ANALYTICS_TOKEN": ""
   },
