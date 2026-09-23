@@ -126,6 +126,15 @@ describe("shape forms", () => {
     });
   });
 
+  it("leaves keys alone when only one page's fields are submitted", () => {
+    const live = { home: { title: "Home" }, club: { title: "Club", fine: "Small print" } };
+    const form = new Map<string, string>([["club.title", "Liquid Love Club"]]);
+    expect(parseShape(live, { get: (name) => form.get(name) })).toEqual({
+      home: { title: "Home" },
+      club: { title: "Liquid Love Club", fine: "Small print" },
+    });
+  });
+
   it("ignores form fields the defaults don't describe", () => {
     const form = new Map<string, string>([["hero.injected", "nope"]]);
     const result = parseShape(defaults, { get: (name) => form.get(name) }) as Record<string, unknown>;

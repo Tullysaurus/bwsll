@@ -1,4 +1,5 @@
 import { DirtyForm } from "../DirtyForm";
+import { HistoryLinks } from "../HistoryLinks";
 import { guardPage } from "../Guard";
 import { ShapeFields } from "../ShapeFields";
 import { saveLegal } from "../content-actions";
@@ -28,6 +29,8 @@ export default async function AdminLegalPage() {
       <DirtyForm action={saveLegal} className="mt-8" saveLabel="Save legal text">
         <ShapeFields groups={groups} />
       </DirtyForm>
+
+      <HistoryLinks keys={["legal"]} />
     </div>
   );
 }

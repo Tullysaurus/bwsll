@@ -1,4 +1,5 @@
 import { DirtyForm } from "../DirtyForm";
+import { HistoryLinks } from "../HistoryLinks";
 import { guardPage } from "../Guard";
 import { ShapeFields } from "../ShapeFields";
 import { saveBusiness, saveOrdering } from "../content-actions";
@@ -71,6 +72,8 @@ export default async function AdminBusinessPage() {
           ))}
         </div>
       </DirtyForm>
+
+      <HistoryLinks keys={["business", "ordering"]} />
     </div>
   );
 }

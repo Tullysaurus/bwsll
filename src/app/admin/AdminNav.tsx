@@ -9,11 +9,21 @@ import { usePathname } from "next/navigation";
  * `key={pathname}` remounts it closed after every move, with no effect needed.
  */
 
-export type NavItem = { href: string; label: string; hint?: string; badge?: number };
+export type NavItem = {
+  href: string;
+  label: string;
+  badge?: number;
+  /** Extra routes that belong to this item — the screens behind Settings, say. */
+  match?: string[];
+};
 export type NavGroup = { title?: string; items: NavItem[] };
 
-function isActive(pathname: string, href: string) {
+function under(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isActive(pathname: string, item: NavItem) {
+  return under(pathname, item.href) || (item.match ?? []).some((href) => under(pathname, href));
 }
 
 function Item({ item, active }: { item: NavItem; active: boolean }) {
@@ -59,7 +69,7 @@ function Groups({ groups, pathname }: { groups: NavGroup[]; pathname: string }) 
           ) : null}
           <div className="grid gap-1">
             {group.items.map((item) => (
-              <Item key={item.href} item={item} active={isActive(pathname, item.href)} />
+              <Item key={item.href} item={item} active={isActive(pathname, item)} />
             ))}
           </div>
         </div>
@@ -71,7 +81,7 @@ function Groups({ groups, pathname }: { groups: NavGroup[]; pathname: string }) 
 export function AdminNav({ groups }: { groups: NavGroup[] }) {
   const pathname = usePathname();
   const here =
-    groups.flatMap((g) => g.items).find((item) => isActive(pathname, item.href))?.label ?? "Menu";
+    groups.flatMap((g) => g.items).find((item) => isActive(pathname, item))?.label ?? "Menu";
 
   return (
     <>

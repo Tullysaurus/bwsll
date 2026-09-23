@@ -32,11 +32,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const settings = await getSettings();
   const bannerLive = Boolean(settings.closure_notice.trim());
 
+  // Short on purpose: four groups, and everything that is set up once lives behind
+  // Settings. Staff and owners see the same menu — the owner-only screens are inside.
   const groups: NavGroup[] = [
     { items: [{ href: "/admin", label: "Home" }] },
-    // The banner sits on top of every page of the public site, so it gets its own place
-    // in the menu rather than being buried in settings.
-    { title: "Banner", items: [{ href: "/admin/announcement", label: "Top bar message" }] },
     {
       title: "From visitors",
       items: [
@@ -45,25 +44,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       ],
     },
     {
-      title: "Your site",
+      title: "Your website",
       items: [
         { href: "/admin/events", label: "Events" },
         { href: "/admin/photos", label: "Photos" },
-        { href: "/admin/documents", label: "Files & menus" },
         { href: "/admin/text", label: "Page text" },
+        { href: "/admin/documents", label: "Files & menus" },
       ],
     },
     {
-      title: "Setup",
       items: [
-        { href: "/admin/hours", label: "Hours & closed days" },
-        ...(can(user.role, "settings.business")
-          ? [{ href: "/admin/business", label: "Business details" }]
-          : []),
-        { href: "/admin/settings", label: "Prices & replies" },
-        ...(can(user.role, "settings.legal") ? [{ href: "/admin/legal", label: "Privacy & terms" }] : []),
-        ...(can(user.role, "team.manage") ? [{ href: "/admin/team", label: "Who can sign in" }] : []),
-        { href: "/admin/trash", label: "Deleted items" },
+        {
+          href: "/admin/settings",
+          label: "Settings",
+          match: ["/admin/announcement", "/admin/hours", "/admin/business", "/admin/legal", "/admin/team", "/admin/trash"],
+        },
       ],
     },
   ];

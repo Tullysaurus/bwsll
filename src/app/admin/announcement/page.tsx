@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { saveAnnouncement } from "../actions";
 import { DirtyForm } from "../DirtyForm";
+import { HistoryLinks } from "../HistoryLinks";
 import { guardPage } from "../Guard";
 import { getSettings } from "@/lib/settings";
 
@@ -92,14 +92,7 @@ export default async function AdminAnnouncementPage() {
           </div>
         </div>
 
-        <p className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-[14px]">
-          <span style={{ color: "var(--muted)" }}>Past versions:</span>
-          {["announcement", "closure_notice"].map((key) => (
-            <Link key={key} href={`/admin/history/setting/${key}`} className="link" style={{ fontSize: 14 }}>
-              {key.replace(/_/g, " ")}
-            </Link>
-          ))}
-        </p>
+        <HistoryLinks keys={["announcement", "announcement_short", "closure_notice"]} />
       </DirtyForm>
     </div>
   );

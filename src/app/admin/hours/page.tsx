@@ -1,4 +1,5 @@
 import { DirtyForm } from "../DirtyForm";
+import { HistoryLinks } from "../HistoryLinks";
 import { ConfirmButton } from "../ConfirmButton";
 import { guardPage } from "../Guard";
 import { deleteClosure, saveClosure, saveHours } from "../content-actions";
@@ -96,6 +97,8 @@ export default async function AdminHoursPage() {
           </div>
         </fieldset>
       </DirtyForm>
+
+      <HistoryLinks keys={["hours_week"]} />
 
       <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
 
