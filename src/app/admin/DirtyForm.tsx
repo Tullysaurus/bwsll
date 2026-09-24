@@ -42,17 +42,23 @@ export function SaveBar({
   const anchor = useRef<HTMLDivElement>(null);
   const [dirty, setDirty] = useState(false);
 
-  // Watching the surrounding form means every field counts, including ones added later,
-  // and no field has to be wired up by hand.
+  // Watching the document, and asking each field which form it belongs to, means every
+  // field counts: ones inside the form, ones added later, and ones placed elsewhere on
+  // the page with a `form="…"` attribute (which don't bubble their events to the form).
   useEffect(() => {
     const form = anchor.current?.closest("form");
     if (!form) return;
-    const mark = () => setDirty(true);
-    form.addEventListener("input", mark);
-    form.addEventListener("change", mark);
+
+    const mark = (event: Event) => {
+      const field = event.target as { form?: HTMLFormElement } | null;
+      if (field?.form === form) setDirty(true);
+    };
+
+    document.addEventListener("input", mark, true);
+    document.addEventListener("change", mark, true);
     return () => {
-      form.removeEventListener("input", mark);
-      form.removeEventListener("change", mark);
+      document.removeEventListener("input", mark, true);
+      document.removeEventListener("change", mark, true);
     };
   }, []);
 
@@ -148,12 +154,19 @@ export function DirtyForm({
   className,
   saveLabel = "Save changes",
   always = false,
+  id,
 }: {
   action: (formData: FormData) => Promise<void> | void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   saveLabel?: string;
   always?: boolean;
+  /**
+   * Lets fields elsewhere on the page join this form with `form="<id>"` — for a screen
+   * whose fields are spread across cards that also contain forms of their own, which
+   * can't be nested inside this one.
+   */
+  id?: string;
 }) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [error, setError] = useState("");
@@ -173,7 +186,7 @@ export function DirtyForm({
   }
 
   return (
-    <form action={submit} className={className}>
+    <form id={id} action={submit} className={className}>
       {children}
       <SaveBar
         saveLabel={saveLabel}

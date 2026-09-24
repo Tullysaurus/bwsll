@@ -2,7 +2,7 @@ import { DirtyForm } from "../DirtyForm";
 import { HistoryLinks } from "../HistoryLinks";
 import { ConfirmButton } from "../ConfirmButton";
 import { guardPage } from "../Guard";
-import { deleteClosure, saveBookingRules, saveClosure, saveHours } from "../content-actions";
+import { deleteClosure, saveClosure, saveHoursScreen } from "../content-actions";
 import { listAllClosures, todayLocal } from "@/lib/closures";
 import { getBookingRules, getHours } from "@/lib/content";
 import { describeMinutes, windowsToText } from "@/lib/booking";
@@ -23,8 +23,8 @@ export default async function AdminHoursPage() {
         Hours &amp; closed days
       </h1>
       <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
-        Your normal week, plus any one-off days you&rsquo;re closed or open at different
-        times. The website works out how to word it.
+        Your normal week, when the room can be booked, and any one-off days you&rsquo;re
+        closed or open at different times. The website works out how to word it.
       </p>
 
       <div
@@ -47,7 +47,9 @@ export default async function AdminHoursPage() {
         </ul>
       </div>
 
-      <DirtyForm action={saveHours} className="mt-8" saveLabel="Save hours">
+      {/* Both settings on this screen live in one form: change anything anywhere on the
+          page and a single Save writes all of it. */}
+      <DirtyForm action={saveHoursScreen} className="mt-8" saveLabel="Save hours">
         <fieldset className="border-0 p-0">
           <legend className="display" style={{ fontSize: 22 }}>
             A normal week
@@ -97,9 +99,68 @@ export default async function AdminHoursPage() {
             })}
           </div>
         </fieldset>
+
+        <fieldset className="mt-12 border-0 p-0">
+          <legend className="display" style={{ fontSize: 22 }}>
+            When the room can be booked
+          </legend>
+          <p className="mt-2 text-[15px]" style={{ color: "var(--muted)" }}>
+            The times people can ask for when they request the space. Leave a day blank to
+            take it off the table. A booking runs {describeMinutes(rules.minMinutes)} to{" "}
+            {describeMinutes(rules.maxMinutes)}, with {describeMinutes(rules.bufferMinutes)}{" "}
+            either side to turn the room around.
+          </p>
+
+          <div className="mt-4 grid gap-3">
+            {DAY_KEYS.map((day) => (
+              <div key={day} className="grid items-end gap-3 sm:grid-cols-[130px_1fr]">
+                <p className="text-[16px] font-medium">{DAY_NAME[day]}</p>
+                <div>
+                  <label htmlFor={`book_${day}`} className="sr-only">
+                    Bookable times on {DAY_NAME[day]}
+                  </label>
+                  <input
+                    id={`book_${day}`}
+                    name={`book_${day}`}
+                    className="field-input"
+                    defaultValue={windowsToText(rules.windows[day] ?? [])}
+                    placeholder="07:00-16:00, 17:00-21:00"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="field-hint">
+            One or more times, separated by commas. 24-hour clock, so 5pm is 17:00.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {[
+              { name: "minMinutes", label: "Shortest booking (minutes)", value: rules.minMinutes },
+              { name: "maxMinutes", label: "Longest booking (minutes)", value: rules.maxMinutes },
+              { name: "bufferMinutes", label: "Gap between bookings (minutes)", value: rules.bufferMinutes },
+              { name: "noticeHours", label: "Notice needed (hours)", value: rules.noticeHours },
+              { name: "horizonDays", label: "How far ahead people can book (days)", value: rules.horizonDays },
+            ].map((field) => (
+              <div key={field.name}>
+                <label htmlFor={field.name} className="field-label">
+                  {field.label}
+                </label>
+                <input
+                  id={field.name}
+                  name={field.name}
+                  type="number"
+                  min={0}
+                  className="field-input"
+                  defaultValue={field.value}
+                />
+              </div>
+            ))}
+          </div>
+        </fieldset>
       </DirtyForm>
 
-      <HistoryLinks keys={["hours_week"]} />
+      <HistoryLinks keys={["hours_week", "booking_rules"]} />
 
       <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
 
@@ -157,84 +218,12 @@ export default async function AdminHoursPage() {
         </p>
       )}
 
-      <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
-
-      <h2 className="display mt-10" style={{ fontSize: 26 }}>
-        When the room can be booked
-      </h2>
-      <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
-        The times people can ask for when they request the space. Leave a day blank to
-        take it off the table. Right now a booking runs {describeMinutes(rules.minMinutes)} to{" "}
-        {describeMinutes(rules.maxMinutes)}, with {describeMinutes(rules.bufferMinutes)} either
-        side to turn the room around.
-      </p>
-
-      <DirtyForm action={saveBookingRules} className="mt-6" saveLabel="Save booking rules">
+      {/* Its own form on purpose: this adds a new row rather than editing the screen. */}
+      <form action={saveClosure} className="mt-8">
         <fieldset className="border-0 p-0">
-          <legend className="sr-only">Bookable times</legend>
-          <div className="grid gap-3">
-            {DAY_KEYS.map((day) => (
-              <div key={day} className="grid items-end gap-3 sm:grid-cols-[130px_1fr]">
-                <p className="text-[16px] font-medium">{DAY_NAME[day]}</p>
-                <div>
-                  <label htmlFor={`book_${day}`} className="sr-only">
-                    Bookable times on {DAY_NAME[day]}
-                  </label>
-                  <input
-                    id={`book_${day}`}
-                    name={`book_${day}`}
-                    className="field-input"
-                    defaultValue={windowsToText(rules.windows[day] ?? [])}
-                    placeholder="07:00-16:00, 17:00-21:00"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="field-hint">
-            One or more times, separated by commas. 24-hour clock, so 5pm is 17:00.
-          </p>
-        </fieldset>
-
-        <fieldset className="mt-8 border-0 p-0">
-          <legend className="sr-only">Booking limits</legend>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { name: "minMinutes", label: "Shortest booking (minutes)", value: rules.minMinutes },
-              { name: "maxMinutes", label: "Longest booking (minutes)", value: rules.maxMinutes },
-              { name: "bufferMinutes", label: "Gap between bookings (minutes)", value: rules.bufferMinutes },
-              { name: "noticeHours", label: "Notice needed (hours)", value: rules.noticeHours },
-              { name: "horizonDays", label: "How far ahead people can book (days)", value: rules.horizonDays },
-            ].map((field) => (
-              <div key={field.name}>
-                <label htmlFor={field.name} className="field-label">
-                  {field.label}
-                </label>
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="number"
-                  min={0}
-                  className="field-input"
-                  defaultValue={field.value}
-                />
-              </div>
-            ))}
-          </div>
-        </fieldset>
-      </DirtyForm>
-
-      <HistoryLinks keys={["booking_rules"]} />
-
-      <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
-
-      <h2 className="display mt-10" style={{ fontSize: 26 }}>
-        Add a closed day
-      </h2>
-
-      <form action={saveClosure} className="mt-6">
-        <fieldset className="border-0 p-0">
-          <legend className="sr-only">Add a closed day</legend>
+          <legend className="display" style={{ fontSize: 22 }}>
+            Add a closed day
+          </legend>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="start_date" className="field-label">

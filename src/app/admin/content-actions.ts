@@ -36,6 +36,16 @@ async function saveContent(key: string, value: unknown, user: string, paths: str
 
 /* --- hours ---------------------------------------------------------------- */
 
+/**
+ * One screen, one Save. The hours screen holds two settings; they are written as two
+ * rows with their own history, but a person editing the page sees one form and presses
+ * Save once.
+ */
+export async function saveHoursScreen(formData: FormData) {
+  await saveHours(formData);
+  await saveBookingRules(formData);
+}
+
 export async function saveHours(formData: FormData) {
   const user = await requireAdmin();
 
@@ -106,6 +116,12 @@ export async function deleteClosure(formData: FormData) {
 }
 
 /* --- business, ordering, text, legal -------------------------------------- */
+
+/** Business details and the ordering links are one screen, so they save together. */
+export async function saveBusinessScreen(formData: FormData) {
+  await saveBusiness(formData);
+  await saveOrdering(formData);
+}
 
 export async function saveBusiness(formData: FormData) {
   const user = await requireAdmin("settings.business");

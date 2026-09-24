@@ -2,7 +2,7 @@ import { DirtyForm } from "../DirtyForm";
 import { HistoryLinks } from "../HistoryLinks";
 import { guardPage } from "../Guard";
 import { ShapeFields } from "../ShapeFields";
-import { saveBusiness, saveOrdering } from "../content-actions";
+import { saveBusinessScreen } from "../content-actions";
 import { getBusiness, getOrdering } from "@/lib/content";
 import { groupsOf } from "@/lib/shape-form";
 
@@ -34,22 +34,19 @@ export default async function AdminBusinessPage() {
         one-line address are worked out from what you type.
       </p>
 
-      <DirtyForm action={saveBusiness} className="mt-8" saveLabel="Save details">
+      <DirtyForm action={saveBusinessScreen} className="mt-8" saveLabel="Save details">
         <ShapeFields groups={groups} />
-      </DirtyForm>
+        <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
 
-      <hr className="mt-12" style={{ border: 0, borderTop: "1px solid var(--line)" }} />
+        <h2 className="display mt-10" style={{ fontSize: 26 }}>
+          Order ahead &amp; delivery
+        </h2>
+        <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
+          Paste the web address of each one. A button appears on the site for every link
+          you fill in; leave one blank and that button stays hidden.
+        </p>
 
-      <h2 className="display mt-10" style={{ fontSize: 26 }}>
-        Order ahead &amp; delivery
-      </h2>
-      <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
-        Paste the web address of each one. A button appears on the site for every link you
-        fill in; leave one blank and that button stays hidden.
-      </p>
-
-      <DirtyForm action={saveOrdering} className="mt-6" saveLabel="Save links">
-        <div className="grid gap-5">
+        <div className="mt-6 grid gap-5">
           {[
             { name: "orderAhead", label: "Order ahead", hint: "Your own ordering page, e.g. Square or Toast." },
             { name: "doordash", label: "DoorDash", hint: "" },

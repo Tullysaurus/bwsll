@@ -212,12 +212,22 @@ export async function listTrash(): Promise<TrashItem[]> {
     Exclude<EntityType, "setting">,
     (typeof ENTITIES)[keyof typeof ENTITIES],
   ][]) {
-    const { results } = await database
-      .prepare(
-        `SELECT ${def.columns.join(", ")} FROM ${def.table}
-         WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC`,
-      )
-      .all<Record<string, unknown>>();
+    // One entity per query, each on its own: a database that hasn't had the latest
+    // migration run yet is missing a table or a column, and that must not take the whole
+    // Trash screen down — the other entities are still restorable.
+    let results: Record<string, unknown>[] | undefined;
+    try {
+      ({ results } = await database
+        .prepare(
+          `SELECT ${def.columns.join(", ")} FROM ${def.table}
+           WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC`,
+        )
+        .all<Record<string, unknown>>());
+    } catch (error) {
+      console.error(`[trash] skipping ${entity}`, error);
+      continue;
+    }
+
     for (const row of results ?? []) {
       items.push({
         entity,

@@ -2,11 +2,14 @@ import Link from "next/link";
 import { guardPage } from "../Guard";
 import { MediaUploader } from "../MediaUploader";
 import { DirtyForm } from "../DirtyForm";
-import { clearSlotMedia, saveSlotDetails } from "../media-actions";
+import { clearSlotMedia, saveAllSlotDetails } from "../media-actions";
 import { photoSlotIds } from "@/content/photos";
 import { getAllPhotoSlots } from "@/lib/photos";
 
 export const dynamic = "force-dynamic";
+
+/** Every slot's fields join this one form, so the page has a single Save. */
+const SLOTS_FORM = "photo-slots";
 
 /** Which page each slot belongs to, so the list reads like the site. */
 const GROUPS: { title: string; ids: string[] }[] = [
@@ -84,18 +87,27 @@ export default async function PhotosPage() {
                   </p>
 
                   {slot.src ? (
-                    <DirtyForm action={saveSlotDetails} className="mt-4 grid gap-3" saveLabel="Save details">
-                      <input type="hidden" name="slotId" value={id} />
-                      <input type="hidden" name="mediaId" value={slot.mediaId ?? ""} />
+                    /* These fields belong to the one form at the bottom of the page via
+                       `form="photo-slots"`: they can't be nested inside it, because each
+                       card also holds the upload and remove forms. */
+                    <div className="mt-4 grid gap-3">
+                      <input type="hidden" name="slot" value={id} form={SLOTS_FORM} />
+                      <input
+                        type="hidden"
+                        name={`mediaId__${id}`}
+                        value={slot.mediaId ?? ""}
+                        form={SLOTS_FORM}
+                      />
                       <div>
                         <label htmlFor={`alt-field-${id}`} className="field-label">
                           What&rsquo;s in the photo?
                         </label>
                         <input
                           id={`alt-field-${id}`}
-                          name="alt"
+                          name={`alt__${id}`}
                           className="field-input"
                           defaultValue={slot.alt}
+                          form={SLOTS_FORM}
                         />
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -105,10 +117,11 @@ export default async function PhotosPage() {
                           </label>
                           <input
                             id={`credit-${id}`}
-                            name="creditText"
+                            name={`creditText__${id}`}
                             className="field-input"
                             defaultValue={slot.credit?.text ?? ""}
                             placeholder="Photo: Name / Publication"
+                            form={SLOTS_FORM}
                           />
                         </div>
                         <div>
@@ -117,14 +130,15 @@ export default async function PhotosPage() {
                           </label>
                           <input
                             id={`credit-url-${id}`}
-                            name="creditUrl"
+                            name={`creditUrl__${id}`}
                             className="field-input"
                             defaultValue={slot.credit?.url ?? ""}
                             placeholder="https://"
+                            form={SLOTS_FORM}
                           />
                         </div>
                       </div>
-                    </DirtyForm>
+                    </div>
                   ) : null}
 
                   <MediaUploader
@@ -147,6 +161,10 @@ export default async function PhotosPage() {
           })}
         </section>
       ))}
+
+      {/* The one form for the whole screen. It holds no fields of its own — every slot's
+          inputs above point at it — so a single Save writes every photo that changed. */}
+      <DirtyForm id={SLOTS_FORM} action={saveAllSlotDetails} saveLabel="Save photo details" />
     </div>
   );
 }

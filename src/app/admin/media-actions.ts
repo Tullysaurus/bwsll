@@ -26,19 +26,30 @@ export async function clearSlotMedia(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
-export async function saveSlotDetails(formData: FormData) {
+/**
+ * Every photo on the screen, saved in one go — the page is one form, so someone who
+ * retitles three photos presses Save once. Fields are named `alt__<slot>` and the slot
+ * ids come from the hidden `slot` inputs, so only slots actually on the page are touched.
+ */
+export async function saveAllSlotDetails(formData: FormData) {
   await requireAdmin();
-  const slotId = String(formData.get("slotId") ?? "");
-  const mediaId = Number(formData.get("mediaId"));
-  if (!slotId) return;
 
-  await setPhotoSlot(slotId, mediaId || null, String(formData.get("alt") ?? "").trim() || null);
-  if (mediaId) {
-    await updateMediaMeta(mediaId, {
-      creditText: String(formData.get("creditText") ?? "").trim() || null,
-      creditUrl: String(formData.get("creditUrl") ?? "").trim() || null,
-    });
+  for (const raw of formData.getAll("slot")) {
+    const slotId = String(raw);
+    if (!slotId) continue;
+
+    const mediaId = Number(formData.get(`mediaId__${slotId}`));
+    const alt = String(formData.get(`alt__${slotId}`) ?? "").trim();
+
+    await setPhotoSlot(slotId, mediaId || null, alt || null);
+    if (mediaId) {
+      await updateMediaMeta(mediaId, {
+        creditText: String(formData.get(`creditText__${slotId}`) ?? "").trim() || null,
+        creditUrl: String(formData.get(`creditUrl__${slotId}`) ?? "").trim() || null,
+      });
+    }
   }
+
   revalidatePath("/admin/photos");
   revalidatePath("/", "layout");
 }
