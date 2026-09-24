@@ -35,69 +35,43 @@ export async function recordEvent(name: TrackedEvent, path: string): Promise<voi
   }
 }
 
-export type WeekCount = { week: string; count: number };
+export type ActivityRow = { name: string; count: number; before: number };
+export type SiteActivity = { days: number; total: number; before: number; rows: ActivityRow[] };
 
 /**
- * Six months of weekly totals. SQLite's %W counts weeks from Monday, which is what the
- * chart's bars are — one per week, oldest first, with empty weeks filled in so the gaps
- * are visible rather than collapsed.
+ * One month, each action counted, next to the month before it so there's something to
+ * compare against. Two numbers per row is as much history as this screen needs: a week
+ * of a café's website is a handful of taps, and a run of near-empty bars told the owner
+ * nothing except that the numbers were small.
  */
-export async function weeklyTotals(weeks = 26): Promise<WeekCount[]> {
+export async function recentActivity(days = 30): Promise<SiteActivity> {
+  const empty: SiteActivity = { days, total: 0, before: 0, rows: [] };
   const database = db();
-  if (!database) return [];
+  if (!database) return empty;
 
-  let rows: { week: string; count: number }[] = [];
+  let rows: { name: string; count: number; before: number }[] = [];
   try {
     const { results } = await database
       .prepare(
-        `SELECT strftime('%Y-%W', created_at) AS week, COUNT(*) AS count
+        `SELECT name,
+                SUM(CASE WHEN created_at >= datetime('now', ?1) THEN 1 ELSE 0 END) AS count,
+                SUM(CASE WHEN created_at <  datetime('now', ?1) THEN 1 ELSE 0 END) AS before
          FROM analytics_events
-         WHERE created_at >= datetime('now', ?1)
-         GROUP BY week ORDER BY week`,
+         WHERE created_at >= datetime('now', ?2)
+         GROUP BY name
+         ORDER BY count DESC, name`,
       )
-      .bind(`-${weeks * 7} days`)
-      .all<{ week: string; count: number }>();
+      .bind(`-${days} days`, `-${days * 2} days`)
+      .all<{ name: string; count: number; before: number }>();
     rows = results ?? [];
   } catch {
-    return [];
+    return empty;
   }
 
-  const found = new Map(rows.map((row) => [row.week, row.count]));
-  const out: WeekCount[] = [];
-  const cursor = new Date();
-  cursor.setUTCDate(cursor.getUTCDate() - (weeks - 1) * 7);
-
-  for (let i = 0; i < weeks; i += 1) {
-    out.push({ week: weekKey(cursor), count: found.get(weekKey(cursor)) ?? 0 });
-    cursor.setUTCDate(cursor.getUTCDate() + 7);
-  }
-  return out;
-}
-
-/** SQLite's `%Y-%W`: the year, and the week number counting from the first Monday. */
-function weekKey(date: Date): string {
-  const start = Date.UTC(date.getUTCFullYear(), 0, 1);
-  const firstDay = new Date(start).getUTCDay(); // 0 = Sunday
-  const daysBeforeFirstMonday = (8 - (firstDay === 0 ? 7 : firstDay)) % 7;
-  const dayOfYear = Math.floor((date.getTime() - start) / 86400000);
-  const week = Math.floor((dayOfYear - daysBeforeFirstMonday) / 7) + 1;
-  return `${date.getUTCFullYear()}-${String(Math.max(0, week)).padStart(2, "0")}`;
-}
-
-export async function countsByName(days = 30): Promise<{ name: string; count: number }[]> {
-  const database = db();
-  if (!database) return [];
-  try {
-    const { results } = await database
-      .prepare(
-        `SELECT name, COUNT(*) AS count FROM analytics_events
-         WHERE created_at >= datetime('now', ?1)
-         GROUP BY name ORDER BY count DESC`,
-      )
-      .bind(`-${days} days`)
-      .all<{ name: string; count: number }>();
-    return results ?? [];
-  } catch {
-    return [];
-  }
+  return {
+    days,
+    total: rows.reduce((sum, row) => sum + row.count, 0),
+    before: rows.reduce((sum, row) => sum + row.before, 0),
+    rows: rows.filter((row) => row.count > 0),
+  };
 }

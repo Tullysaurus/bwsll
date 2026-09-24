@@ -92,9 +92,10 @@ const HOW_TO: { question: string; answer: React.ReactNode }[] = [
     question: "What do the numbers on the home page mean?",
     answer: (
       <>
-        How many times people did something on the website in the last six months — tapped
-        the phone number, opened the menu, sent a request. They&rsquo;re counts and nothing
-        else: the site doesn&rsquo;t record who anyone is.
+        How many times people did something on the website in the last 30 days — tapped
+        the phone number, opened the menu, sent a request — next to the same count for the
+        month before, so you can see which way it&rsquo;s going. They&rsquo;re counts and
+        nothing else: the site doesn&rsquo;t record who anyone is.
       </>
     ),
   },
