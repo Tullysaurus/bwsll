@@ -46,3 +46,6 @@ next-env.d.ts
 .open-next/
 .wrangler/
 .dev.vars
+
+# Backups made by scripts/export.mjs — real data, never committed
+/backup/

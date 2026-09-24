@@ -46,6 +46,10 @@ The app degrades gracefully when things aren't configured yet:
 | `npm run db:migrate:local` / `npm run db:migrate` | Apply `migrations/` to the local / remote D1 database |
 | `npm run cf:preview` | Build with OpenNext and run the real Worker locally |
 | `npm run cf:deploy` | Build and deploy to Cloudflare |
+| `npm run backup -- --env dev` | Every row and every file it points at → `backup/` (gitignored) |
+| `npm run restore -- --env dev --from backup/<dir>` | Put a backup back. Refuses to overwrite a site in use without `--force` |
+| `npm run verify -- --env dev` | Migrations applied, files present, no placeholder config, secrets set |
+| `npm run provision -- --env production` | Create the database and bucket in a fresh Cloudflare account |
 
 ## Where things live
 
@@ -53,8 +57,8 @@ The app degrades gracefully when things aren't configured yet:
 src/content/      business facts, menu, catering packages, photo slots, page copy, legal copy
 src/lib/          D1 helpers, settings, zod schemas, Resend, Turnstile, Access JWT, dates, JSON-LD
 src/components/   design-system components (Button, PhotoSlot, InquiryForm, CateringEstimator, …)
-src/app/(home)/   the home page (full footer)
-src/app/(site)/   every other public page (compact footer)
+src/app/(home)/   the home page
+src/app/(site)/   every other public page
 src/app/admin/    owner admin, gated by Cloudflare Access
 src/app/api/      /api/inquiries, /api/subscribe, /api/admin/subscribers (CSV)
 src/proxy.ts      verifies the Cloudflare Access JWT for /admin and /api/admin
@@ -62,7 +66,7 @@ src/app/media/    streams R2 objects; src/app/files/ serves documents by slug
 migrations/       D1 schema + seed
 scripts/          provision / seed-files / export / import / verify (plain Node + wrangler)
 seed/             files, photos and fonts uploaded to R2 by `npm run seed:files`
-docs/             PLAN-v2.md, FILES.md, PHOTOS.md
+docs/             PLAN-v2.md, PORTABILITY.md, FILES.md, PHOTOS.md
 ```
 
 Nothing lives in `public/` that would shadow a route: the PDFs and photos moved to
@@ -121,15 +125,21 @@ change; the metadata and humans.txt stand on their own.
 
 ### The three things that change most often
 
-- **Menu** — `src/content/menu.ts` (a code edit; there is no menu editor in v1).
-- **Photos** — add a `src` to a slot in `src/content/photos.ts`; see `public/photos/README.md`.
-- **Hours, announcements, rental rates, response time** — the owner edits these at
-  `/admin/settings`; the values in `src/lib/settings.ts` are only the fallback defaults.
+The owner does all three themselves now; the files below are only the defaults a fresh
+database falls back to.
+
+- **Menu** — `/admin/menu`, which also generates the printable PDF. Default:
+  `src/content/menu.ts`.
+- **Photos** — `/admin/photos`, one entry per slot on the site. Default:
+  `src/content/photos.ts`; see `docs/PHOTOS.md`.
+- **Hours, closed days, announcements, page text** — `/admin/hours`, `/admin/announcement`
+  and `/admin/text`. Defaults: `src/lib/settings.ts` and `src/content/`.
 
 ## Deploying
 
 See [DEPLOY.md](DEPLOY.md) for Cloudflare setup, secrets, Access configuration and the
-DNS migration off GoDaddy.
+DNS migration off GoDaddy, and [docs/PORTABILITY.md](docs/PORTABILITY.md) for backups and
+moving the site to the client's own Cloudflare account.
 
 ## Still waiting on the client
 

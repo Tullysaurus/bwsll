@@ -9,6 +9,18 @@ rules that keep deploys working — read those even if the rest is configured.
 
 ## 1. Cloudflare account and D1
 
+For a **new account** — the client's — one command does this whole step plus §1b:
+
+```bash
+npx wrangler login
+npx wrangler whoami                       # confirm it's the right account
+npm run provision -- --env production
+```
+
+It creates the database and the bucket, writes the new `database_id` into
+`wrangler.jsonc`, applies the migrations, uploads `seed/`, and prints the dashboard work
+that's left (§2–4 below). Re-running it is safe. By hand, that's:
+
 ```bash
 npx wrangler login
 npx wrangler d1 create bwsll
@@ -199,11 +211,22 @@ Do these in order, and don't cancel anything until the new site **and** email ar
 7. Check that mail to `info@bwsll.com` still arrives.
 8. Only then cancel the GoDaddy Website Builder plan.
 
+## 8b. Moving the content across
+
+`npm run backup -- --env dev` then `npm run restore -- --env production --from backup/<dir>`
+copies every row and every uploaded file into the new account, ids intact, and
+`npm run verify -- --env production` checks the result. See
+[docs/PORTABILITY.md](docs/PORTABILITY.md) — it also covers what a backup deliberately
+leaves out (secrets, Access applications, generated PDFs) and how to rehearse a restore
+without touching anything real.
+
 ## 9. After launch
 
 - Update the **Google Business Profile** website link, hours and address.
 - Update **Visit Tulsa**, **TravelOK** and **Yelp** — several still list 10 N Greenwood.
 - Confirm `/robots.txt` and `/sitemap.xml` resolve, and submit the sitemap in Search Console.
+- `npm run verify -- --env production` — it checks the pending-migration case that shows up
+  as a 500 on one admin page and nowhere else.
 - Set `SITE_URL` in `wrangler.jsonc` to `https://bwsll.com` — it drives canonical URLs,
   the sitemap, robots.txt and the admin link inside notification emails, and it is still
   pointed at the temporary domain.
