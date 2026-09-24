@@ -24,8 +24,12 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** §4.6 — `compact` drops the newsletter column on inner pages. */
-export async function SiteFooter({ compact }: { compact?: boolean }) {
+/**
+ * One footer, the same on every page. It used to drop the newsletter column on inner
+ * pages, which made the site feel like two sites and hid the sign-up everywhere except
+ * the home page.
+ */
+export async function SiteFooter() {
   const [business, hours] = await Promise.all([getBusiness(), getHours()]);
   const socialLinks = socialLinksOf(business);
   const siteKey = turnstileSiteKey();
@@ -36,33 +40,17 @@ export async function SiteFooter({ compact }: { compact?: boolean }) {
       className="on-dark mt-auto"
       style={{ background: "var(--ink)", color: "var(--footer-text)" }}
     >
-      <div className="shell gutter" style={{ paddingTop: compact ? 64 : 96, paddingBottom: 48 }}>
-        <div
-          className={
-            compact
-              ? "grid gap-10 md:grid-cols-3 md:gap-14"
-              : "grid gap-12 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-14"
-          }
-        >
-          {compact ? null : (
-            <div>
-              <p className="display" style={{ fontSize: 34, color: "var(--paper)", lineHeight: 1.1 }}>
-                Liquid Lounge
-              </p>
-              <p className="mt-4 max-w-[380px] text-[16px]" style={{ color: "var(--footer-text)" }}>
-                New drinks, events and open dates. Sent straight to your inbox.
-              </p>
-              <NewsletterForm siteKey={siteKey} />
-            </div>
-          )}
-
-          {compact ? (
-            <div>
-              <p className="display" style={{ fontSize: 30, color: "var(--paper)", lineHeight: 1.1 }}>
-                Liquid Lounge
-              </p>
-            </div>
-          ) : null}
+      <div className="shell gutter" style={{ paddingTop: 96, paddingBottom: 48 }}>
+        <div className="grid gap-12 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-14">
+          <div>
+            <p className="display" style={{ fontSize: 34, color: "var(--paper)", lineHeight: 1.1 }}>
+              Liquid Lounge
+            </p>
+            <p className="mt-4 max-w-[380px] text-[16px]" style={{ color: "var(--footer-text)" }}>
+              New drinks, events and open dates. Sent straight to your inbox.
+            </p>
+            <NewsletterForm siteKey={siteKey} />
+          </div>
 
           <div>
             <FooterHeading>Visit</FooterHeading>
@@ -125,17 +113,15 @@ export async function SiteFooter({ compact }: { compact?: boolean }) {
                 </li>
               ))}
             </ul>
-            {compact ? null : (
-              <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[15px]">
-                {quickLinks.map((item) => (
-                  <li key={item.href}>
-                    <Link href={item.href} className="link" style={{ color: "var(--footer-muted)" }}>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[15px]">
+              {quickLinks.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="link" style={{ color: "var(--footer-muted)" }}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

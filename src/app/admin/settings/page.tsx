@@ -52,6 +52,12 @@ export default async function AdminSettingsIndex() {
       show: can(role, "team.manage"),
     },
     {
+      href: "/admin/help",
+      label: "How to do things",
+      blurb: "Short answers for the jobs that come up — closing for a day, changing a price.",
+      show: true,
+    },
+    {
       href: "/admin/trash",
       label: "Deleted items",
       blurb: "Anything deleted in the last while, put it back from here.",

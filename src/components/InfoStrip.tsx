@@ -1,12 +1,15 @@
 import { getBusiness, getHours } from "@/lib/content";
 import { weeklyLabels } from "@/lib/hours";
 import { ClockIcon, PhoneIcon, PinIcon } from "./Icons";
+import { TrackedLink } from "./TrackedLink";
 
 type Column = {
   icon: React.ReactNode;
   label: string;
   value: string;
   valueHref?: string;
+  /** Counted when the value itself is tapped — the phone number, mainly. */
+  valueEvent?: string;
   sub: React.ReactNode;
 };
 
@@ -37,9 +40,9 @@ export async function InfoStrip() {
       label: "Find us",
       value: `${business.address.street}, ${business.address.city}`,
       sub: (
-        <a href={business.mapUrl} target="_blank" rel="noreferrer" className="link">
+        <TrackedLink href={business.mapUrl} event="directions" className="link">
           Get directions
-        </a>
+        </TrackedLink>
       ),
     },
     {
@@ -47,10 +50,11 @@ export async function InfoStrip() {
       label: "Call or email",
       value: business.phone,
       valueHref: business.phoneHref,
+      valueEvent: "call",
       sub: (
-        <a href={business.emailHref} className="link">
+        <TrackedLink href={business.emailHref} event="email" external={false} className="link">
           {business.email}
-        </a>
+        </TrackedLink>
       ),
     },
   ];
@@ -74,9 +78,14 @@ export async function InfoStrip() {
             <div className="text-right">
               <p className="display" style={{ fontSize: 20 }}>
                 {col.valueHref ? (
-                  <a href={col.valueHref} style={{ color: "inherit" }}>
+                  <TrackedLink
+                    href={col.valueHref}
+                    event={col.valueEvent ?? "call"}
+                    external={false}
+                    style={{ color: "inherit" }}
+                  >
                     {col.value}
-                  </a>
+                  </TrackedLink>
                 ) : (
                   col.value
                 )}
@@ -111,9 +120,14 @@ export async function InfoStrip() {
               </p>
               <p className="display mt-2" style={{ fontSize: 24, lineHeight: 1.2 }}>
                 {col.valueHref ? (
-                  <a href={col.valueHref} style={{ color: "inherit", textDecoration: "none" }}>
+                  <TrackedLink
+                    href={col.valueHref}
+                    event={col.valueEvent ?? "call"}
+                    external={false}
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
                     {col.value}
-                  </a>
+                  </TrackedLink>
                 ) : (
                   col.value
                 )}

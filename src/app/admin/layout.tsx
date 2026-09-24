@@ -60,7 +60,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {
           href: "/admin/settings",
           label: "Settings",
-          match: ["/admin/announcement", "/admin/hours", "/admin/business", "/admin/legal", "/admin/team", "/admin/trash"],
+          match: [
+            "/admin/announcement",
+            "/admin/hours",
+            "/admin/business",
+            "/admin/legal",
+            "/admin/team",
+            "/admin/trash",
+            "/admin/help",
+          ],
         },
       ],
     },

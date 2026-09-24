@@ -3,14 +3,8 @@ import { AnnouncementBar } from "./AnnouncementBar";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 
-/** Shared page chrome. The home page uses the full footer, inner pages the compact one. */
-export async function SiteChrome({
-  children,
-  compactFooter,
-}: {
-  children: React.ReactNode;
-  compactFooter?: boolean;
-}) {
+/** Shared page chrome — the same header and footer on every page. */
+export async function SiteChrome({ children }: { children: React.ReactNode }) {
   const ordering = await getOrdering();
   return (
     <div className="flex min-h-screen flex-col">
@@ -22,7 +16,7 @@ export async function SiteChrome({
       <main id="main" className="flex-1">
         {children}
       </main>
-      <SiteFooter compact={compactFooter} />
+      <SiteFooter />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { money } from "@/lib/format";
 import type { InquiryFormType } from "@/lib/schemas";
 import { useEstimate } from "./EstimateContext";
 import { DayAvailability } from "./DayAvailability";
+import { track } from "./track";
 import { Turnstile } from "./Turnstile";
 
 type Values = Record<string, string | boolean>;
@@ -138,6 +139,7 @@ export function InquiryForm({
         requestAnimationFrame(() => summaryRef.current?.focus());
         return;
       }
+      track("inquiry_sent");
       setStatus("done");
     } catch {
       setFormError("We couldn't send that. Please try again, or call us at 918-851-1982.");

@@ -3,6 +3,8 @@ import { countNewInquiries, getUpcomingEvents, listSubscribers } from "@/lib/db"
 import { currentAdmin } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getSettings } from "@/lib/settings";
+import { countsByName, EVENT_LABEL, weeklyTotals, type TrackedEvent } from "@/lib/analytics";
+import { ActivityChart } from "./ActivityChart";
 import { fullEventLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -48,11 +50,13 @@ export default async function AdminHome() {
   if (!user) return null; // The layout has already shown the "no access" screen.
 
   const seesWorkforce = can(user.role, "inquiries.workforce");
-  const [newCount, events, subscribers, settings] = await Promise.all([
+  const [newCount, events, subscribers, settings, weeks, byName] = await Promise.all([
     countNewInquiries(seesWorkforce ? [] : ["workforce"]),
     getUpcomingEvents(3),
     listSubscribers(),
     getSettings(),
+    weeklyTotals(),
+    countsByName(30),
   ]);
 
   const closed = settings.closure_notice.trim();
@@ -91,7 +95,37 @@ export default async function AdminHome() {
         />
       </div>
 
-      <h2 className="display mt-10" style={{ fontSize: 22 }}>
+      <section className="mt-12">
+        <h2 className="display" style={{ fontSize: 22 }}>
+          How the site is doing
+        </h2>
+        <p className="mt-1 text-[15px]" style={{ color: "var(--muted)" }}>
+          Things people did on the website — tapped the phone number, opened the menu,
+          sent a request. Counts only: nothing here says who anyone is.
+        </p>
+
+        <ActivityChart weeks={weeks} />
+
+        {byName.length ? (
+          <dl className="mt-6 grid gap-x-6 gap-y-2 sm:grid-cols-[1fr_auto]">
+            {byName.map((row) => (
+              <div key={row.name} className="contents">
+                <dt className="text-[16px]">
+                  {EVENT_LABEL[row.name as TrackedEvent] ?? row.name}
+                </dt>
+                <dd className="text-[16px] font-medium sm:text-right">{row.count}</dd>
+              </div>
+            ))}
+            <div className="contents">
+              <dt className="text-[14px] sm:col-span-2" style={{ color: "var(--muted)" }}>
+                Last 30 days.
+              </dt>
+            </div>
+          </dl>
+        ) : null}
+      </section>
+
+      <h2 className="display mt-12" style={{ fontSize: 22 }}>
         Common jobs
       </h2>
       <ul className="mt-3 grid gap-2 text-[17px]">
@@ -114,7 +148,11 @@ export default async function AdminHome() {
       </ul>
 
       <p className="mt-10 text-[15px]" style={{ color: "var(--muted)" }}>
-        Nothing you change here goes live until you press Save. Deleted things go to{" "}
+        New here?{" "}
+        <Link href="/admin/help" className="link">
+          How to do the usual things
+        </Link>
+        . Nothing you change goes live until you press Save, and deleted things go to{" "}
         <Link href="/admin/trash" className="link">
           Deleted items
         </Link>{" "}

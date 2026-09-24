@@ -1,5 +1,5 @@
 import { getOrdering } from "@/lib/content";
-import { Button } from "./Button";
+import { TrackedLink } from "./TrackedLink";
 
 /**
  * Order-ahead and delivery links. Each button appears only when the owner has filled in
@@ -9,9 +9,9 @@ import { Button } from "./Button";
 export async function OrderButtons({ className = "" }: { className?: string }) {
   const ordering = await getOrdering();
   const links = [
-    { label: "Order ahead", href: ordering.orderAhead, variant: "gold" as const },
-    { label: "DoorDash", href: ordering.doordash, variant: "secondary" as const },
-    { label: "Uber Eats", href: ordering.ubereats, variant: "secondary" as const },
+    { label: "Order ahead", href: ordering.orderAhead, className: "btn btn-gold", event: "order_ahead" },
+    { label: "DoorDash", href: ordering.doordash, className: "btn btn-secondary", event: "delivery" },
+    { label: "Uber Eats", href: ordering.ubereats, className: "btn btn-secondary", event: "delivery" },
   ].filter((link) => link.href.trim());
 
   if (!links.length) return null;
@@ -19,9 +19,9 @@ export async function OrderButtons({ className = "" }: { className?: string }) {
   return (
     <div className={`flex flex-wrap gap-3 ${className}`}>
       {links.map((link) => (
-        <Button key={link.label} href={link.href} variant={link.variant}>
+        <TrackedLink key={link.label} href={link.href} event={link.event} className={link.className}>
           {link.label}
-        </Button>
+        </TrackedLink>
       ))}
     </div>
   );

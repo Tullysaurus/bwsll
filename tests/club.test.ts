@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { addMonths, isLapsed, perksStart, PERKS_AFTER_MONTHS } from "@/lib/club";
 import { inquirySchema, partnerInquirySchema } from "@/lib/schemas";
 import type { ClubMemberRecord } from "@/lib/db";
+import { cleanPath } from "@/lib/analytics";
+import { isTracked } from "@/lib/analytics-names";
 
 const member = (over: Partial<ClubMemberRecord> = {}): ClubMemberRecord => ({
   id: 1,
@@ -69,5 +71,20 @@ describe("partner inquiries", () => {
     const parsed = partnerInquirySchema.parse(valid);
     expect(parsed.partnerWebsite).toBe("https://example.com");
     expect(parsed.website).toBe("");
+  });
+});
+
+describe("analytics guards", () => {
+  it("only accepts names from the allowlist", () => {
+    expect(isTracked("menu_pdf")).toBe(true);
+    expect(isTracked("page_view")).toBe(false);
+    expect(isTracked("'; DROP TABLE analytics_events; --")).toBe(false);
+  });
+
+  it("keeps the path to something that could be a path", () => {
+    expect(cleanPath("/menu?utm_source=instagram")).toBe("/menu");
+    expect(cleanPath("https://elsewhere.example/menu")).toBe("/");
+    expect(cleanPath("not-a-path")).toBe("/");
+    expect(cleanPath(`/${"x".repeat(200)}`)).toBe("/");
   });
 });

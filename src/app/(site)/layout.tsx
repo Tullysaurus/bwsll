@@ -4,5 +4,5 @@ import { SiteChrome } from "@/components/SiteChrome";
 export const dynamic = "force-dynamic";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
-  return <SiteChrome compactFooter>{children}</SiteChrome>;
+  return <SiteChrome>{children}</SiteChrome>;
 }

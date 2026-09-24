@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { track } from "./track";
 import { Turnstile } from "./Turnstile";
 
 type State = "idle" | "sending" | "done" | "error";
@@ -27,6 +28,7 @@ export function NewsletterForm({ siteKey, source = "footer" }: { siteKey?: strin
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !json.ok) throw new Error(json.error || "Something went wrong. Please try again.");
+      track("newsletter_signup");
       setState("done");
     } catch (err) {
       setState("error");

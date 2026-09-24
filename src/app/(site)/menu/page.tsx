@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/Button";
 import { OrderButtons } from "@/components/OrderButtons";
+import { TrackedLink } from "@/components/TrackedLink";
 import { MenuTable, SimpleTable } from "@/components/MenuTable";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { SignatureGrid } from "@/components/SignatureGrid";
@@ -30,9 +30,9 @@ export default async function MenuPage() {
         large
         aside={
           <div className="flex flex-col items-start gap-3 lg:items-end">
-            <Button href={files.menu} variant="secondary">
+            <TrackedLink href={files.menu} event="menu_pdf" className="btn btn-secondary">
               Download PDF menu
-            </Button>
+            </TrackedLink>
             <OrderButtons className="lg:justify-end" />
             <p className="caption" style={{ color: "var(--muted)" }}>
               {menuPage.caption}
