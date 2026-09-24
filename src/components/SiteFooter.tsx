@@ -50,7 +50,7 @@ export async function SiteFooter({ compact }: { compact?: boolean }) {
                 Liquid Lounge
               </p>
               <p className="mt-4 max-w-[380px] text-[16px]" style={{ color: "var(--footer-text)" }}>
-                New drinks, events and open dates — straight to your inbox.
+                New drinks, events and open dates. Sent straight to your inbox.
               </p>
               <NewsletterForm siteKey={siteKey} />
             </div>

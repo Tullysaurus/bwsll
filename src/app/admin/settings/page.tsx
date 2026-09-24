@@ -54,7 +54,7 @@ export default async function AdminSettingsIndex() {
     {
       href: "/admin/trash",
       label: "Deleted items",
-      blurb: "Anything deleted in the last while — put it back from here.",
+      blurb: "Anything deleted in the last while, put it back from here.",
       show: true,
     },
   ].filter((card) => card.show);
