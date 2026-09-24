@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
-import { deleteMedia, setDocumentMedia, setPhotoSlot, updateMediaMeta } from "@/lib/media";
+import { deleteMedia, setDocumentMedia, setDocumentMode, setPhotoSlot, updateMediaMeta } from "@/lib/media";
 
 /**
  * Attaching an uploaded file to a slot or a document. The upload itself goes through
@@ -57,4 +57,21 @@ export async function removeMedia(formData: FormData) {
   await deleteMedia(id);
   revalidatePath("/admin/photos/library");
   revalidatePath("/admin/photos");
+}
+
+/**
+ * The menu PDF can either be a file the owner uploads or one the site builds from the
+ * menu itself. Switching to "auto" leaves the uploaded file in place, so switching back
+ * restores it.
+ */
+export async function setMenuPdfMode(formData: FormData) {
+  await requireAdmin();
+  const slug = String(formData.get("slug") ?? "");
+  const title = String(formData.get("title") ?? "Menu");
+  const mode = formData.get("mode") === "auto" ? "auto" : "custom";
+  if (!slug) return;
+
+  await setDocumentMode(slug, title, mode);
+  revalidatePath("/admin/documents");
+  revalidatePath("/menu");
 }

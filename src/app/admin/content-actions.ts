@@ -3,11 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { requireDb } from "@/lib/db";
-import { getBusiness, getCopy, getLegal, getOrdering } from "@/lib/content";
+import { getBusiness, getCopy, getLegal, getMenu, getOrdering } from "@/lib/content";
 import { DAY_KEYS, type DayHours, type WeekHours } from "@/lib/hours";
 import { mutate, recordSettingRevision, softDelete } from "@/lib/revisions";
 import { saveSetting } from "@/lib/settings";
 import { parseShape } from "@/lib/shape-form";
+import {
+  parseDrinks,
+  parseSimpleItems,
+  parseSizedItems,
+  type Parsed,
+  type ParseIssue,
+} from "@/lib/menu-text";
+import type { MenuDocument } from "@/content/menu";
 
 /**
  * Writes for everything the owner can edit about the business itself: hours, closures,
@@ -123,4 +131,62 @@ export async function saveLegal(formData: FormData) {
     "/privacy",
     "/terms",
   ]);
+}
+
+/* --- menu ----------------------------------------------------------------- */
+
+export async function saveMenu(formData: FormData) {
+  const user = await requireAdmin();
+  const current = await getMenu();
+  const text = (name: string) => String(formData.get(name) ?? "");
+
+  const issues: ParseIssue[] = [];
+  const collect = <T,>(parsed: Parsed<T>, where: string): T => {
+    for (const issue of parsed.issues) issues.push({ ...issue, message: `${where}, line ${issue.line}: ${issue.message}` });
+    return parsed.value;
+  };
+
+  const menu: MenuDocument = {
+    ...current,
+    sizedTables: current.sizedTables.map((table, index) => ({
+      ...table,
+      title: text(`table_${index}_title`).trim() || table.title,
+      sizes: [
+        text(`table_${index}_size0`).trim() || table.sizes[0],
+        text(`table_${index}_size1`).trim() || table.sizes[1],
+      ],
+      items: collect(parseSizedItems(text(`table_${index}_items`), table.title), table.title),
+    })),
+    signatureGroups: current.signatureGroups.map((group, index) => ({
+      ...group,
+      group: text(`sig_${index}_name`).trim() || group.group,
+      prices: [
+        { size: text(`sig_${index}_size0`).trim(), price: text(`sig_${index}_price0`).trim() },
+        { size: text(`sig_${index}_size1`).trim(), price: text(`sig_${index}_price1`).trim() },
+      ],
+      drinks: collect(parseDrinks(text(`sig_${index}_drinks`)), group.group),
+    })),
+    espresso: collect(parseSimpleItems(text("espresso")), "Espresso"),
+    food: collect(parseSimpleItems(text("food")), "Food"),
+    flavorShots: {
+      price: text("flavor_price").trim(),
+      groups: current.flavorShots.groups.map((group, index) => ({
+        label: text(`flavor_${index}_label`).trim() || group.label,
+        items: text(`flavor_${index}_items`).trim(),
+      })),
+    },
+  };
+
+  // A line that can't be read would silently disappear from the menu, so nothing is
+  // saved until every line parses.
+  if (issues.length) {
+    throw new Error(
+      `Nothing was saved. ${issues.length === 1 ? "One line" : `${issues.length} lines`} couldn't be read — ${issues
+        .slice(0, 3)
+        .map((issue) => issue.message)
+        .join("; ")}${issues.length > 3 ? "; …" : ""}`,
+    );
+  }
+
+  await saveContent("menu", menu, user.email, ["/admin/menu", "/menu"]);
 }

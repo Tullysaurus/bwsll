@@ -142,10 +142,36 @@ function collect(dir, prefix) {
 
 console.log(`Seeding ${env}${local ? " (local)" : ""} → db ${DB_NAME}, bucket ${BUCKET}\n`);
 
+/**
+ * Fonts go to fixed keys rather than content-addressed ones: the PDF builder asks for
+ * `fonts/menu-display.ttf` by name, and a new version should replace the old file.
+ */
+const FONTS = ["menu-display.ttf", "menu-body.ttf"];
+
 const documents = collect(join("seed", "files"), "files");
 const photos = collect(join("seed", "photos"), "media");
 
 if (documents.length === 0 && photos.length === 0) fail("Nothing in seed/files or seed/photos");
+
+for (const name of FONTS) {
+  const path = join("seed", "fonts", name);
+  if (!existsSync(path)) {
+    console.log(`  missing        seed/fonts/${name} — the menu PDF will use a standard face`);
+    continue;
+  }
+  wrangler([
+    "r2",
+    "object",
+    "put",
+    `${BUCKET}/fonts/${name}`,
+    "--file",
+    path,
+    "--content-type",
+    "font/ttf",
+    ...remoteFlag,
+  ]);
+  console.log(`  uploaded       ${name} → fonts/${name}`);
+}
 
 for (const file of [...documents, ...photos]) {
   const uploaded = upload(file.path, file.key, file.contentType);

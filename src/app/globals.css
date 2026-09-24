@@ -661,3 +661,27 @@ textarea.field-input {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------------------------------------------------------------------------
+   Admin save bar — slides in on appear. It is mounted only while visible, so the
+   animation runs once and never moves under a cursor that is mid-click.
+--------------------------------------------------------------------------- */
+
+@keyframes save-bar-in {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.save-bar {
+  animation: save-bar-in 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-bar {
+    animation: none;
+  }
+}

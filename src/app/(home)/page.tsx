@@ -7,8 +7,8 @@ import { OfferCard } from "@/components/OfferCard";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { files } from "@/content/business";
-import { getBusiness, getCopy, getHours } from "@/lib/content";
-import { featuredItems } from "@/content/menu";
+import { featuredFrom } from "@/lib/menu-text";
+import { getBusiness, getCopy, getHours, getMenu } from "@/lib/content";
 import { getUpcomingEvents } from "@/lib/db";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { siteUrl } from "@/lib/site";
@@ -21,12 +21,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [events, business, copy, hours] = await Promise.all([
+  const [events, business, copy, hours, menu] = await Promise.all([
     getUpcomingEvents(4),
     getBusiness(),
     getCopy(),
     getHours(),
+    getMenu(),
   ]);
+  const featuredItems = featuredFrom(menu);
   const { home, workforceCurriculum } = copy;
 
   return (

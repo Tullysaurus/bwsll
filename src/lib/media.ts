@@ -252,6 +252,18 @@ export async function getDocument(slug: string): Promise<DocumentRow | null> {
   );
 }
 
+/** Switches a document between the uploaded PDF and one the site builds itself. */
+export async function setDocumentMode(slug: string, title: string, mode: "custom" | "auto") {
+  await requireDb()
+    .prepare(
+      `INSERT INTO documents (slug, title, mode, updated_at)
+       VALUES (?1, ?2, ?3, datetime('now'))
+       ON CONFLICT(slug) DO UPDATE SET mode = excluded.mode, updated_at = datetime('now')`,
+    )
+    .bind(slug, title, mode)
+    .run();
+}
+
 export async function setDocumentMedia(slug: string, title: string, mediaId: number) {
   await requireDb()
     .prepare(

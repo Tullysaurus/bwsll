@@ -40,7 +40,7 @@ export const sizedTables: SizedTable[] = [
 ];
 
 /** House signatures — drinks named for Greenwood figures. */
-export type Signature = { name: string; story?: string };
+export type Signature = { name: string; story?: string; featured?: boolean };
 export type SignatureGroup = {
   group: string;
   prices: [{ size: string; price: string }, { size: string; price: string }];
@@ -54,7 +54,7 @@ export const signatureGroups: SignatureGroup[] = [
       { size: "16 oz", price: "$3.19" },
       { size: "20 oz", price: "$4.21" },
     ],
-    drinks: [{ name: "Rosa Parks" }, { name: "Purple Rain" }, { name: "Halle Berry" }, { name: "Love Potion" }],
+    drinks: [{ name: "Rosa Parks", featured: true }, { name: "Purple Rain" }, { name: "Halle Berry" }, { name: "Love Potion" }],
   },
   {
     group: "Blended Beverages",
@@ -62,7 +62,7 @@ export const signatureGroups: SignatureGroup[] = [
       { size: "16 oz", price: "$6.19" },
       { size: "20 oz", price: "$7.21" },
     ],
-    drinks: [{ name: "Dot Miller" }, { name: "Aunt Lucielle" }, { name: "Marilyn Kay" }, { name: "Tootie Tonic" }],
+    drinks: [{ name: "Dot Miller" }, { name: "Aunt Lucielle", featured: true }, { name: "Marilyn Kay" }, { name: "Tootie Tonic" }],
   },
   {
     group: "Frozen Whip Appeal",
@@ -70,7 +70,7 @@ export const signatureGroups: SignatureGroup[] = [
       { size: "16 oz", price: "$5.19" },
       { size: "20 oz", price: "$6.21" },
     ],
-    drinks: [{ name: "Loula Williams" }, { name: "OW Gurley" }, { name: "GAP Frap" }, { name: "Big Mama" }],
+    drinks: [{ name: "Loula Williams", featured: true }, { name: "OW Gurley", featured: true }, { name: "GAP Frap" }, { name: "Big Mama" }],
   },
   {
     group: "Organic Tea Tonics",
@@ -78,7 +78,7 @@ export const signatureGroups: SignatureGroup[] = [
       { size: "16 oz", price: "$7.19" },
       { size: "20 oz", price: "$8.21" },
     ],
-    drinks: [{ name: "Peg Leg Power" }, { name: "Ole JB" }, { name: "Aunt Jobie" }, { name: "High Baller" }],
+    drinks: [{ name: "Peg Leg Power", featured: true }, { name: "Ole JB" }, { name: "Aunt Jobie" }, { name: "High Baller" }],
   },
 ];
 
@@ -111,16 +111,6 @@ export const flavorShots = {
   ],
 };
 
-/** Home-page teaser rows — name · group · smallest-size price. */
-export const featuredItems: { name: string; group: string; price: string }[] = [
-  { name: "Loula Williams", group: "Frozen Whip Appeal", price: "$5.19" },
-  { name: "OW Gurley", group: "Frozen Whip Appeal", price: "$5.19" },
-  { name: "Rosa Parks", group: "The People's Choice", price: "$3.19" },
-  { name: "Aunt Lucielle", group: "Blended Beverage", price: "$6.19" },
-  { name: "Peg Leg Power", group: "Organic Tea Tonic", price: "$7.19" },
-  { name: "Golden Chai Tea", group: "Hot", price: "$5.07" },
-];
-
 export const menuSections = [
   { id: "coffee", label: "Coffee & tea" },
   { id: "signatures", label: "House signatures" },
@@ -128,3 +118,26 @@ export const menuSections = [
   { id: "food", label: "Food" },
   { id: "flavors", label: "Flavor shots" },
 ];
+
+/**
+ * The whole menu as one document — what `getMenu()` merges a D1 override over, and what
+ * the PDF is generated from. The named exports above are the defaults it is built from;
+ * nothing should read them directly any more.
+ */
+export type MenuDocument = {
+  sizedTables: SizedTable[];
+  signatureGroups: SignatureGroup[];
+  espresso: SimpleItem[];
+  food: SimpleItem[];
+  flavorShots: { price: string; groups: { label: string; items: string }[] };
+  sections: { id: string; label: string }[];
+};
+
+export const menuDocument: MenuDocument = {
+  sizedTables,
+  signatureGroups,
+  espresso,
+  food,
+  flavorShots,
+  sections: menuSections,
+};

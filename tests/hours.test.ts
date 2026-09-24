@@ -12,6 +12,12 @@ import {
   type WeekHours,
 } from "@/lib/hours";
 import { fieldsOf, parseShape } from "@/lib/shape-form";
+import {
+  featuredFrom,
+  parseSimpleItems,
+  parseSizedItems,
+  sizedItemsToText,
+} from "@/lib/menu-text";
 
 const closure = (over: Partial<Closure>): Closure => ({
   id: 1,
@@ -139,5 +145,64 @@ describe("shape forms", () => {
     const form = new Map<string, string>([["hero.injected", "nope"]]);
     const result = parseShape(defaults, { get: (name) => form.get(name) }) as Record<string, unknown>;
     expect(Object.keys(result.hero as object)).toEqual(["title", "body"]);
+  });
+});
+
+describe("menu text", () => {
+  it("round-trips sized items, keeping prices as typed", () => {
+    const text = "House Coffee | 2.79 | 3.19\n*Golden Chai Tea | 5.07 | 6.21";
+    const { value, issues } = parseSizedItems(text, "Hot");
+    expect(issues).toEqual([]);
+    expect(value).toEqual([
+      { name: "House Coffee", prices: ["2.79", "3.19"] },
+      { name: "Golden Chai Tea", prices: ["5.07", "6.21"], featured: true, group: "Hot" },
+    ]);
+    expect(sizedItemsToText(value)).toBe(text);
+  });
+
+  it("reports the line number of anything it can't read", () => {
+    const { value, issues } = parseSizedItems("Good | 1 | 2\nBroken line\n | 1 | 2", "Hot");
+    expect(value).toHaveLength(1);
+    expect(issues.map((issue) => issue.line)).toEqual([2, 3]);
+  });
+
+  it("ignores blank lines and comments", () => {
+    const { value } = parseSimpleItems("# breakfast\n\nMuffins | $2.79\n");
+    expect(value).toEqual([{ name: "Muffins", price: "$2.79" }]);
+  });
+
+  it("collects the home-page teaser from the starred drinks", () => {
+    const menu = {
+      sizedTables: [
+        {
+          id: "hot",
+          title: "Hot",
+          sizes: ["12 oz", "16 oz"] as [string, string],
+          items: [
+            { name: "House Coffee", prices: ["2.79", "3.19"] as [string, string] },
+            { name: "Chai", prices: ["5.07", "6.21"] as [string, string], featured: true, group: "Hot" },
+          ],
+        },
+      ],
+      signatureGroups: [
+        {
+          group: "The People's Choice",
+          prices: [
+            { size: "16 oz", price: "$3.19" },
+            { size: "20 oz", price: "$4.21" },
+          ] as [{ size: string; price: string }, { size: string; price: string }],
+          drinks: [{ name: "Rosa Parks", featured: true }, { name: "Purple Rain" }],
+        },
+      ],
+      espresso: [],
+      food: [],
+      flavorShots: { price: "", groups: [] },
+      sections: [],
+    };
+
+    expect(featuredFrom(menu)).toEqual([
+      { name: "Rosa Parks", group: "The People's Choice", price: "$3.19" },
+      { name: "Chai", group: "Hot", price: "$5.07" },
+    ]);
   });
 });

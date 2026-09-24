@@ -5,6 +5,7 @@ import { DAY_KEYS, defaultHours, type DayHours, type WeekHours } from "./hours";
 import { business as businessDefaults } from "@/content/business";
 import * as copyDefaults from "@/content/copy";
 import { lastUpdated, privacySections, termsSections, type LegalSection } from "@/content/legal";
+import { menuDocument, type MenuDocument } from "@/content/menu";
 
 /**
  * Owner-editable content.
@@ -114,6 +115,11 @@ export const getCopy = cache(async (): Promise<Copy> => deepMerge(copyBase, awai
 export const getLegal = cache(
   async (): Promise<Legal> =>
     deepMerge({ privacy: privacySections, terms: termsSections, lastUpdated }, await override("legal")),
+);
+
+/** The whole menu. Lists are replaced wholesale, so removing an item really removes it. */
+export const getMenu = cache(
+  async (): Promise<MenuDocument> => deepMerge(menuDocument, await override("menu")),
 );
 
 export const getOrdering = cache(

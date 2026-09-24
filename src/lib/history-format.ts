@@ -27,6 +27,7 @@ export const SETTING_LABEL: Record<string, string> = {
   ordering: "Order ahead & delivery",
   copy: "Page text",
   legal: "Privacy & terms",
+  menu: "Menu",
 };
 
 export const SETTING_HOME: Record<string, string> = {
@@ -40,6 +41,7 @@ export const SETTING_HOME: Record<string, string> = {
   ordering: "/admin/business",
   copy: "/admin/text",
   legal: "/admin/legal",
+  menu: "/admin/menu",
 };
 
 export const EMPTY = "— empty —";

@@ -90,49 +90,54 @@ export function SaveBar({
   return (
     <>
       <div ref={anchor} aria-hidden style={{ height: showBar ? 84 : 8 }} />
-      <div
-        className="fixed inset-x-0 bottom-0 z-40"
-        style={{
-          transform: showBar ? "translateY(0)" : "translateY(130%)",
-          transition: "transform 160ms ease",
-          background: "var(--ink)",
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          boxShadow: "0 -6px 18px rgba(0,0,0,0.12)",
-        }}
-      >
-        <div className="mx-auto flex max-w-[900px] flex-wrap items-center justify-between gap-3 px-5 py-3">
-          <p
-            aria-live="polite"
-            className="text-[15px] font-medium"
-            style={{ color: status === "error" ? "#ffb4a2" : "var(--paper)" }}
-          >
-            {message}
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="btn btn-on-dark-outline"
-              style={{ minHeight: 40, padding: "10px 16px" }}
-              disabled={!dirty || status === "saving"}
-              onClick={() => {
-                anchor.current?.closest("form")?.reset();
-                setDirty(false);
-                onDiscard?.();
-              }}
+      {/* Mounted only while it has something to say: a bar that is merely translated
+          off-screen still stacks over the next form's bar and can swallow a click. */}
+      {showBar ? (
+        <div
+          className="save-bar fixed inset-x-0 bottom-0 z-40"
+          style={{
+            background: "var(--ink)",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            boxShadow: "0 -6px 18px rgba(0,0,0,0.12)",
+          }}
+        >
+          <div className="mx-auto flex max-w-[900px] flex-wrap items-center justify-between gap-3 px-5 py-3">
+            <p
+              aria-live="polite"
+              className="text-[15px] font-medium"
+              style={{ color: status === "error" ? "#ffb4a2" : "var(--paper)" }}
             >
-              Discard
-            </button>
-            <button
-              type="submit"
-              className="btn btn-on-dark-solid"
-              style={{ minHeight: 40, padding: "10px 16px" }}
-              disabled={!active || status === "saving"}
-            >
-              {status === "saving" ? "Saving…" : saveLabel}
-            </button>
+              {message}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="btn btn-on-dark-outline"
+                style={{ minHeight: 40, padding: "10px 16px" }}
+                disabled={!dirty || status === "saving"}
+                onClick={() => {
+                  anchor.current?.closest("form")?.reset();
+                  setDirty(false);
+                  onDiscard?.();
+                }}
+              >
+                Discard
+              </button>
+              {/* Never disabled while the bar is up. A field that only reports its change
+                  on blur does so at mousedown, and a button that is disabled at that
+                  moment eats the press — which is what made Save need two clicks. */}
+              <button
+                type="submit"
+                className="btn btn-on-dark-solid"
+                style={{ minHeight: 40, padding: "10px 16px" }}
+                disabled={status === "saving"}
+              >
+                {status === "saving" ? "Saving…" : saveLabel}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }

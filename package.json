@@ -22,8 +22,10 @@
     "seed:files:prod": "node scripts/seed-files.mjs --env production"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "jose": "^6.2.12",
     "next": "16.3.6",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.6.5"
