@@ -14,6 +14,7 @@ const SUBMIT_LABEL: Record<InquiryFormType, string> = {
   catering: "Send request",
   club: "Join the club",
   vendor: "Apply",
+  partner: "Start the conversation",
   workforce: "Apply",
   contact: "Send message",
 };
@@ -23,6 +24,7 @@ const INITIAL: Record<InquiryFormType, Values> = {
   catering: { guests: "20", need: "catering" },
   club: {},
   vendor: { hasLicense: false, hasInsurance: false },
+  partner: {},
   workforce: { program: "workforce", isUnder18: false },
   contact: {},
 };
@@ -298,6 +300,32 @@ export function InquiryForm({
                   I have proof of insurance.
                 </label>
               </div>
+            </>
+          ) : null}
+
+          {type === "partner" ? (
+            <>
+              <Field id={fid("organization")} label="Organization" error={errors.organization}>
+                <input {...text("organization")} type="text" required />
+              </Field>
+
+              <Field
+                id={fid("partnerWebsite")}
+                label="Website (optional)"
+                error={errors.partnerWebsite}
+              >
+                <input {...text("partnerWebsite")} type="url" placeholder="https://" />
+              </Field>
+
+              <Field
+                id={fid("idea")}
+                label="What do you have in mind?"
+                error={errors.idea}
+                className="sm:col-span-2"
+                hint="A partnership, a pop-up, sponsoring something — whatever you're thinking."
+              >
+                <textarea {...text("idea")} rows={4} required />
+              </Field>
             </>
           ) : null}
 

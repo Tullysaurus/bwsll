@@ -79,7 +79,14 @@ export type EventRecord = {
 };
 
 export type InquiryStatus = "new" | "replied" | "booked" | "closed";
-export type InquiryType = "event" | "catering" | "club" | "vendor" | "workforce" | "contact";
+export type InquiryType =
+  | "event"
+  | "catering"
+  | "club"
+  | "vendor"
+  | "partner"
+  | "workforce"
+  | "contact";
 
 export type InquiryRecord = {
   id: number;
@@ -90,6 +97,27 @@ export type InquiryRecord = {
   data: string;
   status: InquiryStatus;
   notes: string | null;
+  created_at: string;
+  deleted_at: string | null;
+  /** Payments are recorded here, never taken — see migration 0007. */
+  pay_link: string | null;
+  deposit_paid: number;
+  balance_paid: number;
+};
+
+export type ClubMemberStatus = "pending" | "active" | "expired" | "cancelled";
+
+export type ClubMemberRecord = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  status: ClubMemberStatus;
+  start_date: string | null;
+  end_date: string | null;
+  pay_link: string | null;
+  notes: string | null;
+  inquiry_id: number | null;
   created_at: string;
   deleted_at: string | null;
 };

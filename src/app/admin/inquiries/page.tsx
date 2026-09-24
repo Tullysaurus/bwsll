@@ -16,7 +16,15 @@ const STATUSES: { value?: InquiryStatus; label: string }[] = [
   { label: "All" },
 ];
 
-const TYPES: InquiryType[] = ["event", "catering", "club", "vendor", "workforce", "contact"];
+const TYPES: InquiryType[] = [
+  "event",
+  "catering",
+  "club",
+  "vendor",
+  "partner",
+  "workforce",
+  "contact",
+];
 
 export default async function InquiriesPage({
   searchParams,

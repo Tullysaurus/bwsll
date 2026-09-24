@@ -99,6 +99,7 @@ export default async function AdminHome() {
           { href: "/admin/events/new", label: "Add an event" },
           { href: "/admin/hours", label: "Mark a day closed" },
           { href: "/admin/menu", label: "Change a price on the menu" },
+          { href: "/admin/club", label: "Check who's in the club" },
           { href: "/admin/photos", label: "Change a photo on the site" },
           { href: "/admin/documents", label: "Put up a new menu or flyer" },
           { href: "/admin/hours", label: "Change opening hours" },

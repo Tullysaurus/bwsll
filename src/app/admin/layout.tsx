@@ -41,6 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       items: [
         { href: "/admin/inquiries", label: "Messages", badge: newCount },
         { href: "/admin/subscribers", label: "Mailing list" },
+        { href: "/admin/club", label: "Club members" },
       ],
     },
     {

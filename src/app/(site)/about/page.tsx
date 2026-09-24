@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Button } from "@/components/Button";
+import { ArrowLink, Button } from "@/components/Button";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { PageIntro } from "@/components/Typography";
 import { getCopy } from "@/lib/content";
@@ -31,6 +31,12 @@ export default async function AboutPage() {
                 See the menu
               </Button>
             </div>
+            {/* The vendors page was reachable from the footer only. Businesses reading
+                the story are exactly who it's for. */}
+            <p className="mt-8 text-[17px]" style={{ color: "var(--muted)" }}>
+              Run a business?{" "}
+              <ArrowLink href="/vendors">Sell with us, or partner with us</ArrowLink>
+            </p>
           </div>
           <div className="grid gap-6">
             <PhotoSlot id="about-1" className="h-[260px] lg:h-[420px]" sizeHint={{ width: 560, height: 420 }} />

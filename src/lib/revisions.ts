@@ -203,7 +203,12 @@ export type TrashItem = {
   deletedAt: string;
 };
 
-export async function listTrash(): Promise<TrashItem[]> {
+/**
+ * Workforce applications can involve minors, so staff never see them — including here.
+ * Trash reads whole rows, so the filter has to be applied to the rows themselves rather
+ * than left to the page.
+ */
+export async function listTrash(options: { includeWorkforce?: boolean } = {}): Promise<TrashItem[]> {
   const database = db();
   if (!database) return [];
 
@@ -229,6 +234,7 @@ export async function listTrash(): Promise<TrashItem[]> {
     }
 
     for (const row of results ?? []) {
+      if (entity === "inquiry" && row.type === "workforce" && !options.includeWorkforce) continue;
       items.push({
         entity,
         id: String(row[def.idColumn]),

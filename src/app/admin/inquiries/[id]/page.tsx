@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { addSubscriber, removeSubscriber, saveInquiryNotes, setInquiryStatus } from "../../actions";
+import { addSubscriber, removeSubscriber, saveInquiryDetails } from "../../actions";
+import { DirtyForm } from "../../DirtyForm";
+import { memberForInquiry } from "@/lib/club";
 import { guardPage } from "../../Guard";
 import { can } from "@/lib/permissions";
 import { getInquiry, isSubscriber } from "@/lib/db";
@@ -46,6 +48,8 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
   if (inquiry.type === "workforce" && !can(guard.user.role, "inquiries.workforce")) notFound();
 
   const subscribed = await isSubscriber(inquiry.email);
+  // Only asked for a club request, and only to decide which button to show.
+  const member = inquiry.type === "club" ? await memberForInquiry(inquiry.id) : null;
 
   let data: Record<string, unknown> = {};
   let raw: string | null = null;
@@ -117,6 +121,17 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
           <Link href={`/admin/events/new?from=${inquiry.id}`} className="btn btn-secondary">
             Add to calendar
           </Link>
+        ) : null}
+        {inquiry.type === "club" ? (
+          member ? (
+            <Link href={`/admin/club/${member.id}`} className="btn btn-secondary">
+              Already a member →
+            </Link>
+          ) : (
+            <Link href={`/admin/club/new?from=${inquiry.id}`} className="btn btn-secondary">
+              Add as a member
+            </Link>
+          )
         ) : null}
 
         {subscribed ? (
@@ -191,40 +206,77 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
         </section>
       ) : null}
 
-      <section className="mt-8 grid gap-8 sm:grid-cols-2">
-        <form action={setInquiryStatus}>
-          <input type="hidden" name="id" value={inquiry.id} />
-          <label htmlFor="status" className="field-label">
-            Status
-          </label>
-          <select id="status" name="status" defaultValue={inquiry.status} className="field-input">
-            <option value="new">New</option>
-            <option value="replied">Replied</option>
-            <option value="booked">Booked</option>
-            <option value="closed">Closed</option>
-          </select>
-          <button type="submit" className="btn btn-secondary mt-3">
-            Save status
-          </button>
-        </form>
+      {/* One screen, one Save: status, notes and the payment record go together. */}
+      <DirtyForm action={saveInquiryDetails} className="mt-8" saveLabel="Save this request">
+        <input type="hidden" name="id" value={inquiry.id} />
 
-        <form action={saveInquiryNotes}>
-          <input type="hidden" name="id" value={inquiry.id} />
-          <label htmlFor="notes" className="field-label">
-            Private notes
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={5}
-            className="field-input"
-            defaultValue={inquiry.notes ?? ""}
-          />
-          <button type="submit" className="btn btn-secondary mt-3">
-            Save notes
-          </button>
-        </form>
-      </section>
+        <div className="grid gap-8 sm:grid-cols-2">
+          <div>
+            <label htmlFor="status" className="field-label">
+              Status
+            </label>
+            <select id="status" name="status" defaultValue={inquiry.status} className="field-input">
+              <option value="new">New</option>
+              <option value="replied">Replied</option>
+              <option value="booked">Booked</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="pay_link" className="field-label">
+              Payment link (optional)
+            </label>
+            <input
+              id="pay_link"
+              name="pay_link"
+              type="url"
+              placeholder="https://"
+              className="field-input"
+              defaultValue={inquiry.pay_link ?? ""}
+            />
+            <p className="field-hint">
+              Wherever you sent them to pay. The site never takes payments itself.
+            </p>
+          </div>
+
+          <div className="sm:col-span-2 grid gap-3">
+            <label className="flex items-center gap-3 text-[16px]">
+              <input
+                type="checkbox"
+                name="deposit_paid"
+                className="checkbox"
+                defaultChecked={inquiry.deposit_paid === 1}
+              />
+              Deposit paid
+            </label>
+            <label className="flex items-center gap-3 text-[16px]">
+              <input
+                type="checkbox"
+                name="balance_paid"
+                className="checkbox"
+                defaultChecked={inquiry.balance_paid === 1}
+              />
+              Balance paid
+            </label>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="notes" className="field-label">
+              Private notes
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={5}
+              className="field-input"
+              defaultValue={inquiry.notes ?? ""}
+            />
+            <p className="field-hint">Only ever seen here.</p>
+          </div>
+        </div>
+      </DirtyForm>
+
     </div>
   );
 }

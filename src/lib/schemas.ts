@@ -126,6 +126,20 @@ export const workforceInquirySchema = z
     }
   });
 
+/**
+ * A business that wants to build something with us, rather than sell to us — the
+ * distinction the vendors page draws. Deliberately short: the conversation is the point.
+ */
+export const partnerInquirySchema = z.object({
+  type: z.literal("partner"),
+  ...base,
+  organization: requiredText(NAME_MAX, "What's the organization called?"),
+  // Not `website`: that name is the honeypot on every type (see the note at the top of
+  // this file), and a partner filling it in would have their message silently dropped.
+  partnerWebsite: optionalText(200),
+  idea: requiredText(MESSAGE_MAX, "Tell us what you have in mind."),
+});
+
 export const contactInquirySchema = z.object({
   type: z.literal("contact"),
   ...base,
@@ -137,6 +151,7 @@ export const inquirySchema = z.discriminatedUnion("type", [
   cateringInquirySchema,
   clubInquirySchema,
   vendorInquirySchema,
+  partnerInquirySchema,
   workforceInquirySchema,
   contactInquirySchema,
 ]);

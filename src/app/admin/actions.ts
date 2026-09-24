@@ -8,7 +8,7 @@ import { db, requireDb, type InquiryStatus } from "@/lib/db";
 import { conflicts } from "@/lib/booking";
 import { getClosures, todayLocal } from "@/lib/closures";
 import { getBookingRules, getHours } from "@/lib/content";
-import { DEFAULT_NEW_USER_ROLE, isRole, type Role } from "@/lib/permissions";
+import { can, DEFAULT_NEW_USER_ROLE, isRole, type Role } from "@/lib/permissions";
 import {
   getRevision,
   mutate,
@@ -285,11 +285,60 @@ function assertEntity(value: unknown): Exclude<EntityType, "setting"> {
   throw new Error(`Unknown entity type: ${String(value)}`);
 }
 
+/**
+ * Everything the detail screen can change about an inquiry — status, notes and the
+ * payment record — in one save, because it's one screen.
+ *
+ * Payments are recorded, never taken: `pay_link` is wherever the owner sent them
+ * (Square, an invoice), and the two flags are ticked by hand when the money lands.
+ */
+export async function saveInquiryDetails(formData: FormData) {
+  const user = await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!id) return;
+
+  const status = String(formData.get("status") ?? "new");
+  if (!STATUSES.includes(status as InquiryStatus)) return;
+
+  await mutate({
+    entity: "inquiry",
+    action: "update",
+    id,
+    user: user.email,
+    write: requireDb()
+      .prepare(
+        `UPDATE inquiries SET status = ?1, notes = ?2, pay_link = ?3, deposit_paid = ?4,
+         balance_paid = ?5 WHERE id = ?6`,
+      )
+      .bind(
+        status,
+        String(formData.get("notes") ?? "").trim() || null,
+        String(formData.get("pay_link") ?? "").trim() || null,
+        formData.get("deposit_paid") === "on" ? 1 : 0,
+        formData.get("balance_paid") === "on" ? 1 : 0,
+        id,
+      ),
+  });
+
+  revalidatePath("/admin/inquiries");
+  revalidatePath(`/admin/inquiries/${id}`);
+}
+
 export async function restoreFromTrash(formData: FormData) {
   const user = await requireAdmin();
   const entity = assertEntity(formData.get("entity"));
   const id = String(formData.get("id") ?? "");
   if (!id) return;
+
+  // Staff can't see workforce applications, so they can't act on one either — the id
+  // could otherwise be posted straight to this endpoint, which never renders a page.
+  if (entity === "inquiry" && !can(user.role, "inquiries.workforce")) {
+    const row = await requireDb()
+      .prepare("SELECT type FROM inquiries WHERE id = ?1")
+      .bind(Number(id))
+      .first<{ type: string }>();
+    if (row?.type === "workforce") throw new Error("Not found.");
+  }
 
   const def = ENTITIES[entity];
   await mutate({

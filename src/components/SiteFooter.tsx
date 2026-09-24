@@ -13,7 +13,7 @@ const legal = [
 
 const quickLinks = [
   { label: "About", href: "/about" },
-  { label: "Vendors", href: "/vendors" },
+  { label: "Vendors & partners", href: "/vendors" },
 ];
 
 function FooterHeading({ children }: { children: React.ReactNode }) {

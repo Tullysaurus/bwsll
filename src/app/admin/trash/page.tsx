@@ -13,7 +13,9 @@ export default async function TrashPage() {
   const guard = await guardPage();
   if (!guard.ok) return guard.screen;
 
-  const items = await listTrash();
+  const items = await listTrash({
+    includeWorkforce: can(guard.user.role, "inquiries.workforce"),
+  });
   const mayPurge = can(guard.user.role, "trash.purge");
 
   const groups = new Map<string, typeof items>();

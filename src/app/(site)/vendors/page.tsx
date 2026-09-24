@@ -57,6 +57,20 @@ export default async function VendorsPage() {
           </div>
         </div>
       </section>
+
+      {/* Partners build something with us; vendors sell to us. Same page, because the
+          audience is the same — a business wondering how to work with the Lounge. */}
+      <section id="partner" className="shell gutter section">
+        <div className="max-w-[760px]">
+          <InquiryForm
+            type="partner"
+            siteKey={turnstileSiteKey()}
+            responseTime={settings.response_time}
+            heading="Or partner with us"
+            intro="Not selling us a product? Pop-ups, sponsorships, programs and collaborations start here."
+          />
+        </div>
+      </section>
     </>
   );
 }

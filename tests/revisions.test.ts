@@ -25,6 +25,26 @@ beforeEach(() => {
   database = createTestDb();
 });
 
+describe("listTrash", () => {
+  it("keeps deleted workforce applications away from staff", async () => {
+    await database
+      .prepare(
+        `INSERT INTO inquiries (type, name, email, data, deleted_at)
+         VALUES ('workforce', 'Teen', 't@example.com', '{}', '2026-09-01'),
+                ('event', 'Ada', 'a@example.com', '{}', '2026-09-01')`,
+      )
+      .run();
+
+    const forStaff = await listTrash();
+    expect(forStaff.map((item) => item.description)).toEqual([
+      expect.stringContaining("event request from Ada"),
+    ]);
+
+    const forOwner = await listTrash({ includeWorkforce: true });
+    expect(forOwner).toHaveLength(2);
+  });
+});
+
 describe("mutate", () => {
   it("records a create and reports the new id", async () => {
     const id = await mutate({ entity: "event", action: "create", user: USER, write: insertEvent("Open mic") });

@@ -6,7 +6,14 @@
  * means adding it here too — otherwise it silently stops being versioned.
  */
 
-export const ENTITY_TYPES = ["event", "inquiry", "subscriber", "closure", "setting"] as const;
+export const ENTITY_TYPES = [
+  "event",
+  "inquiry",
+  "subscriber",
+  "closure",
+  "club_member",
+  "setting",
+] as const;
 export type EntityType = (typeof ENTITY_TYPES)[number];
 
 export type EntityDef = {
@@ -67,11 +74,37 @@ export const ENTITIES: Record<Exclude<EntityType, "setting">, EntityDef> = {
       "notes",
       "created_at",
       "deleted_at",
+      "pay_link",
+      "deposit_paid",
+      "balance_paid",
     ],
     singular: "Inquiry",
     plural: "Inquiries",
     href: (id) => `/admin/inquiries/${id}`,
     describe: (s) => `${str(s.type)} request from ${str(s.name, "someone")}`,
+  },
+  club_member: {
+    table: "club_members",
+    idColumn: "id",
+    idIsText: false,
+    columns: [
+      "id",
+      "name",
+      "email",
+      "phone",
+      "status",
+      "start_date",
+      "end_date",
+      "pay_link",
+      "notes",
+      "inquiry_id",
+      "created_at",
+      "deleted_at",
+    ],
+    singular: "Club member",
+    plural: "Club members",
+    href: (id) => `/admin/club/${id}`,
+    describe: (s) => `${str(s.name, "Someone")} — ${str(s.status)}`,
   },
   closure: {
     table: "closures",
@@ -117,6 +150,7 @@ export const ENTITY_LABEL: Record<EntityType, string> = {
   inquiry: "Inquiry",
   subscriber: "Subscriber",
   closure: "Closure",
+  club_member: "Club member",
   setting: "Setting",
 };
 
