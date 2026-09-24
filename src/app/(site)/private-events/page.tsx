@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { Button } from "@/components/Button";
 import { CateringEstimator } from "@/components/CateringEstimator";
 import { EstimateProvider } from "@/components/EstimateContext";
+import { AvailabilityCalendar } from "@/components/AvailabilityCalendar";
 import { InquiryForm } from "@/components/InquiryForm";
+import { isMonth } from "@/lib/booking";
+import { todayLocal } from "@/lib/closures";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { files } from "@/content/business";
-import { goodToKnow, rentalRows, rentalTiers } from "@/content/catering";
-import { getCopy } from "@/lib/content";
+import { rentalRows, rentalTiers } from "@/content/catering";
+import { getCatering, getCopy } from "@/lib/content";
 import { getSettings, rateOrAsk } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -18,8 +21,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/private-events" },
 };
 
-export default async function PrivateEventsPage() {
-  const [settings, { privateEvents }] = await Promise.all([getSettings(), getCopy()]);
+export default async function PrivateEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const requested = (await searchParams).month ?? "";
+  const month = isMonth(requested) ? requested : todayLocal().slice(0, 7);
+  const [settings, { privateEvents }, catering] = await Promise.all([
+    getSettings(),
+    getCopy(),
+    getCatering(),
+  ]);
   const siteKey = turnstileSiteKey();
   const rates = settings.rental_rates;
 
@@ -142,11 +155,24 @@ export default async function PrivateEventsPage() {
         </div>
       </section>
 
+      {/* What's still free */}
+      <section id="availability" className="section" style={{ background: "var(--paper)" }}>
+        <div className="shell gutter">
+          <div className="max-w-[620px]">
+            <Eyebrow>Availability</Eyebrow>
+            <h2 className="h2 mt-3">When the room is free.</h2>
+          </div>
+          <div className="mt-8 max-w-[620px]">
+            <AvailabilityCalendar month={month} basePath="/private-events" />
+          </div>
+        </div>
+      </section>
+
       <EstimateProvider>
         {/* Catering estimator */}
         <section id="catering" className="section" style={{ background: "var(--paper)" }}>
           <div className="shell gutter">
-            <CateringEstimator />
+            <CateringEstimator catering={catering} />
           </div>
         </section>
 
@@ -164,7 +190,7 @@ export default async function PrivateEventsPage() {
             <aside className="rule-top-ink pt-6 lg:self-start">
               <h3 className="h3">Good to know</h3>
               <ul className="mt-5 list-none">
-                {goodToKnow.map((item) => (
+                {catering.goodToKnow.map((item) => (
                   <li key={item} className="py-4 text-[16px]" style={{ borderTop: "1px solid var(--line)" }}>
                     {item}
                   </li>

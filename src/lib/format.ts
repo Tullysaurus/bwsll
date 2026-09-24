@@ -72,3 +72,20 @@ export const kindLabel: Record<string, string> = {
 };
 
 export const money = (n: number) => `$${n.toLocaleString("en-US")}`;
+
+/**
+ * What visitors are allowed to see an event called. A booking made for someone else is
+ * on the public calendar so the room reads as busy, but the client's name is theirs —
+ * `hide_title` replaces it, and takes the description with it, since that often names
+ * them too.
+ */
+export function publicEventTitle(event: { title: string; hide_title?: number }): string {
+  return event.hide_title === 1 ? "Private event" : event.title;
+}
+
+export function publicEventDescription(event: {
+  description?: string | null;
+  hide_title?: number;
+}): string | null {
+  return event.hide_title === 1 ? null : (event.description ?? null);
+}

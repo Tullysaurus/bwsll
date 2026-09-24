@@ -1,28 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  addOnNote,
-  cateringPackages,
-  defaultSelected,
-  defaultTier,
-  guestTiers,
-  packagePrice,
-  type GuestTier,
-} from "@/content/catering";
+import { guestTiers, packagePrice, type GuestTier } from "@/content/catering";
+import type { Catering } from "@/lib/content";
 import { money } from "@/lib/format";
 import { useEstimate } from "./EstimateContext";
 import { Eyebrow } from "./Typography";
 
-/** §5.3.4 — group-size pills, package checkboxes, live total. No backend. */
-export function CateringEstimator() {
-  const [tier, setTier] = useState<GuestTier>(defaultTier);
-  const [selected, setSelected] = useState<string[]>(defaultSelected);
+/**
+ * §5.3.4 — group-size pills, package checkboxes, live total. No backend.
+ *
+ * The packages come in as a prop rather than an import: they're owner-editable now, and
+ * this is a client component, so the server has to hand them over.
+ */
+export function CateringEstimator({ catering }: { catering: Catering }) {
+  const { packages, addOnNote } = catering;
+  const [tier, setTier] = useState<GuestTier>(catering.defaultTier);
+  const [selected, setSelected] = useState<string[]>(catering.defaultSelected);
   const shared = useEstimate();
 
   const chosen = useMemo(
-    () => cateringPackages.filter((pkg) => selected.includes(pkg.id)),
-    [selected],
+    () => packages.filter((pkg) => selected.includes(pkg.id)),
+    [packages, selected],
   );
   const total = useMemo(
     () => chosen.reduce((sum, pkg) => sum + packagePrice(pkg, tier), 0),
@@ -74,7 +73,7 @@ export function CateringEstimator() {
 
         <fieldset className="rule-top-ink mt-8 border-0 p-0">
           <legend className="sr-only">Catering packages</legend>
-          {cateringPackages.map((pkg) => (
+          {packages.map((pkg) => (
             <label
               key={pkg.id}
               className="grid cursor-pointer items-center gap-4 py-4"

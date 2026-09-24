@@ -161,6 +161,9 @@ export const eventSchema = z.object({
   kind: z.enum(["public", "private", "catering"]),
   description: optionalText(MESSAGE_MAX),
   published: z.coerce.boolean().default(true),
+  usesSpace: z.coerce.boolean().default(true),
+  hideTitle: z.coerce.boolean().default(false),
+  inquiryId: z.coerce.number().int().positive().optional(),
 });
 
 /** Flatten zod issues into `{ fieldName: message }` for the form UI. */

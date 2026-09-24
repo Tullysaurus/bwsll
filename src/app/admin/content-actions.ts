@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { requireDb } from "@/lib/db";
-import { getBusiness, getCopy, getLegal, getMenu, getOrdering } from "@/lib/content";
+import { getBookingRules, getBusiness, getCatering, getCopy, getLegal, getMenu, getOrdering } from "@/lib/content";
 import { DAY_KEYS, type DayHours, type WeekHours } from "@/lib/hours";
+import { parseWindows, type BookingRules } from "@/lib/booking";
+import { parsePackages } from "@/lib/catering-text";
 import { mutate, recordSettingRevision, softDelete } from "@/lib/revisions";
 import { saveSetting } from "@/lib/settings";
 import { parseShape } from "@/lib/shape-form";
@@ -189,4 +191,67 @@ export async function saveMenu(formData: FormData) {
   }
 
   await saveContent("menu", menu, user.email, ["/admin/menu", "/menu"]);
+}
+
+/* --- booking rules and catering -------------------------------------------- */
+
+export async function saveBookingRules(formData: FormData) {
+  const user = await requireAdmin();
+  const current = await getBookingRules();
+
+  const number = (name: string, fallback: number) => {
+    const value = Number(String(formData.get(name) ?? "").trim());
+    return Number.isFinite(value) && value >= 0 ? value : fallback;
+  };
+
+  const windows = { ...current.windows };
+  for (const day of DAY_KEYS) {
+    windows[day] = parseWindows(String(formData.get(`book_${day}`) ?? ""));
+  }
+
+  const rules: BookingRules = {
+    windows,
+    bufferMinutes: number("bufferMinutes", current.bufferMinutes),
+    minMinutes: number("minMinutes", current.minMinutes),
+    maxMinutes: number("maxMinutes", current.maxMinutes),
+    noticeHours: number("noticeHours", current.noticeHours),
+    horizonDays: number("horizonDays", current.horizonDays),
+  };
+
+  await saveContent("booking_rules", rules, user.email, ["/admin/hours", "/private-events"]);
+}
+
+export async function saveCatering(formData: FormData) {
+  const user = await requireAdmin();
+  const current = await getCatering();
+
+  const { value: packages, issues } = parsePackages(String(formData.get("packages") ?? ""));
+  if (issues.length) {
+    throw new Error(
+      `Nothing was saved. ${issues.map((issue) => `Line ${issue.line}: ${issue.message}`).join(" ")}`,
+    );
+  }
+
+  const lines = (name: string) =>
+    String(formData.get(name) ?? "")
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+  // A package that's gone can't stay ticked by default.
+  const ids = new Set(packages.map((pkg) => pkg.id));
+
+  await saveContent(
+    "catering",
+    {
+      ...current,
+      packages,
+      addOnNote: String(formData.get("addOnNote") ?? "").trim(),
+      goodToKnow: lines("goodToKnow"),
+      defaultSelected: current.defaultSelected.filter((id) => ids.has(id)),
+    },
+    user.email,
+    ["/admin/catering", "/private-events"],
+  );
 }

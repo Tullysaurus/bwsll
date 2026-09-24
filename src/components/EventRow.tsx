@@ -1,10 +1,20 @@
 import type { EventRecord } from "@/lib/db";
-import { dayNum, dowAbbr, kindLabel, monthAbbr, timeRange } from "@/lib/format";
+import {
+  dayNum,
+  dowAbbr,
+  kindLabel,
+  monthAbbr,
+  publicEventDescription,
+  publicEventTitle,
+  timeRange,
+} from "@/lib/format";
 
 /** §5.1.6 — date block · title · time+place · kind pill. */
 export function EventRow({ event }: { event: EventRecord }) {
   const month = monthAbbr(event.starts_at).toUpperCase();
   const dow = dowAbbr(event.starts_at).toUpperCase();
+  const title = publicEventTitle(event);
+  const description = publicEventDescription(event);
 
   return (
     <li
@@ -21,7 +31,7 @@ export function EventRow({ event }: { event: EventRecord }) {
       </div>
       <div className="md:hidden">
         <p className="display" style={{ fontSize: 20, lineHeight: 1.2 }}>
-          {event.title}
+          {title}
         </p>
         <p className="mt-1 text-[13px]" style={{ color: "var(--muted)" }}>
           {timeRange(event.starts_at, event.ends_at)} · {event.location}
@@ -45,11 +55,11 @@ export function EventRow({ event }: { event: EventRecord }) {
         </div>
         <div>
           <p className="display" style={{ fontSize: 28, lineHeight: 1.2 }}>
-            {event.title}
+            {title}
           </p>
-          {event.description ? (
+          {description ? (
             <p className="mt-2 max-w-[520px] text-[15px]" style={{ color: "var(--muted)" }}>
-              {event.description}
+              {description}
             </p>
           ) : null}
         </div>

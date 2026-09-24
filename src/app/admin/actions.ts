@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { requireDb, type InquiryStatus } from "@/lib/db";
+import { db, requireDb, type InquiryStatus } from "@/lib/db";
+import { conflicts } from "@/lib/booking";
+import { getClosures, todayLocal } from "@/lib/closures";
+import { getBookingRules, getHours } from "@/lib/content";
 import { DEFAULT_NEW_USER_ROLE, isRole, type Role } from "@/lib/permissions";
 import {
   getRevision,
@@ -111,7 +114,54 @@ export async function removeSubscriber(formData: FormData) {
 
 /* --- events --- */
 
-export type EventFormState = { errors?: Record<string, string>; message?: string };
+export type EventFormState = {
+  errors?: Record<string, string>;
+  message?: string;
+  /** Reasons the room isn't free — shown with a "save anyway" button, never a refusal. */
+  conflicts?: string[];
+};
+
+/**
+ * Everything already in the room at that time, excluding the event being edited. Same
+ * `conflicts()` the public calendar and the inquiry re-check use, so the three agree.
+ */
+async function eventConflicts(input: {
+  id: number | null;
+  date: string;
+  start: string;
+  end?: string;
+}): Promise<string[]> {
+  const database = db();
+  if (!database) return [];
+
+  try {
+    const [rules, hours, closures] = await Promise.all([getBookingRules(), getHours(), getClosures()]);
+    const { results } = await database
+      .prepare(
+        `SELECT id, starts_at, ends_at, uses_space FROM events
+         WHERE deleted_at IS NULL AND uses_space = 1 AND starts_at LIKE ?1`,
+      )
+      .bind(`${input.date}%`)
+      .all<{ id: number; starts_at: string; ends_at: string | null; uses_space: number }>();
+
+    return conflicts(
+      { date: input.date, start: input.start, end: input.end || undefined },
+      {
+        rules,
+        hours,
+        closures,
+        events: (results ?? []).filter((row) => row.id !== input.id),
+        now: `${todayLocal()}T00:00`,
+      },
+    )
+      // Staff put things in the diary at short notice and far ahead; those two rules are
+      // for the public form, not for the calendar.
+      .filter((conflict) => conflict.code !== "notice" && conflict.code !== "horizon")
+      .map((conflict) => conflict.message);
+  } catch {
+    return [];
+  }
+}
 
 function toStartsAt(date: string, time: string) {
   return `${date}T${time}`;
@@ -131,6 +181,9 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
     kind: formData.get("kind") ?? "public",
     description: formData.get("description") ?? "",
     published: formData.get("published") === "on",
+    usesSpace: formData.get("usesSpace") === "on",
+    hideTitle: formData.get("hideTitle") === "on",
+    inquiryId: formData.get("inquiryId") || undefined,
   });
 
   if (!parsed.success) {
@@ -142,6 +195,19 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
   const endsAt = e.endTime ? toStartsAt(e.date, e.endTime) : null;
   const database = requireDb();
 
+  // An event that occupies the room is checked against everything else in it. This is a
+  // warning, not a rule: staff know things the calendar doesn't, so "Save anyway"
+  // carries `force` and goes straight through.
+  if (e.usesSpace && formData.get("force") !== "1") {
+    const clashes = await eventConflicts({ id, date: e.date, start: e.startTime, end: e.endTime });
+    if (clashes.length) {
+      return {
+        conflicts: clashes,
+        message: "That time isn't free.",
+      };
+    }
+  }
+
   if (id) {
     await mutate({
       entity: "event",
@@ -150,9 +216,21 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       user: user.email,
       write: database
         .prepare(
-          "UPDATE events SET title=?1, starts_at=?2, ends_at=?3, location=?4, kind=?5, description=?6, published=?7 WHERE id=?8",
+          `UPDATE events SET title=?1, starts_at=?2, ends_at=?3, location=?4, kind=?5, description=?6,
+           published=?7, uses_space=?8, hide_title=?9 WHERE id=?10`,
         )
-        .bind(e.title, startsAt, endsAt, e.location, e.kind, e.description ?? null, e.published ? 1 : 0, id),
+        .bind(
+          e.title,
+          startsAt,
+          endsAt,
+          e.location,
+          e.kind,
+          e.description ?? null,
+          e.published ? 1 : 0,
+          e.usesSpace ? 1 : 0,
+          e.hideTitle ? 1 : 0,
+          id,
+        ),
     });
   } else {
     await mutate({
@@ -161,9 +239,21 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       user: user.email,
       write: database
         .prepare(
-          "INSERT INTO events (title, starts_at, ends_at, location, kind, description, published) VALUES (?1,?2,?3,?4,?5,?6,?7)",
+          `INSERT INTO events (title, starts_at, ends_at, location, kind, description, published,
+           uses_space, hide_title, inquiry_id) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)`,
         )
-        .bind(e.title, startsAt, endsAt, e.location, e.kind, e.description ?? null, e.published ? 1 : 0),
+        .bind(
+          e.title,
+          startsAt,
+          endsAt,
+          e.location,
+          e.kind,
+          e.description ?? null,
+          e.published ? 1 : 0,
+          e.usesSpace ? 1 : 0,
+          e.hideTitle ? 1 : 0,
+          e.inquiryId ?? null,
+        ),
     });
   }
 

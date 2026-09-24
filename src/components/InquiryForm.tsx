@@ -4,6 +4,7 @@ import { useCallback, useId, useRef, useState } from "react";
 import { money } from "@/lib/format";
 import type { InquiryFormType } from "@/lib/schemas";
 import { useEstimate } from "./EstimateContext";
+import { DayAvailability } from "./DayAvailability";
 import { Turnstile } from "./Turnstile";
 
 type Values = Record<string, string | boolean>;
@@ -201,6 +202,7 @@ export function InquiryForm({
 
               <Field id={fid("eventDate")} label="Event date" error={errors.eventDate}>
                 <input {...text("eventDate")} type="date" required />
+                <DayAvailability date={String(values.eventDate ?? "")} />
               </Field>
 
               <Field id={fid("guests")} label="Guests" error={errors.guests}>

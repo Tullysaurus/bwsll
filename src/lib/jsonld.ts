@@ -1,7 +1,7 @@
 import type { EventRecord } from "./db";
 import type { Business } from "./content";
 import { DAY_KEYS, DAY_SCHEMA, isClosed, type WeekHours } from "./hours";
-import { parseLocal } from "./format";
+import { parseLocal, publicEventDescription, publicEventTitle } from "./format";
 
 /** schema.org opening hours, read straight off the structured week. */
 export function openingHours(hours: WeekHours) {
@@ -65,10 +65,10 @@ export function eventJsonLd(business: Business, event: EventRecord, siteUrl: str
   return {
     "@context": "https://schema.org",
     "@type": "Event",
-    name: event.title,
+    name: publicEventTitle(event),
     startDate,
     ...(endDate ? { endDate } : {}),
-    ...(event.description ? { description: event.description } : {}),
+    ...(publicEventDescription(event) ? { description: publicEventDescription(event) } : {}),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     location: {

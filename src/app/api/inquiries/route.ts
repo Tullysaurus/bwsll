@@ -1,10 +1,50 @@
 import { NextResponse } from "next/server";
-import { requireDb } from "@/lib/db";
+import { conflicts } from "@/lib/booking";
+import { getClosures, todayLocal } from "@/lib/closures";
+import { getBookingRules, getHours } from "@/lib/content";
+import { db, requireDb } from "@/lib/db";
 import { sendInquiryNotification } from "@/lib/email";
 import { fieldErrors, inquirySchema } from "@/lib/schemas";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
+
+/** Only the room can clash; off-site catering never does. */
+async function bookingConflicts(rest: Record<string, unknown>): Promise<string[]> {
+  const date = typeof rest.eventDate === "string" ? rest.eventDate : "";
+  const start = typeof rest.startTime === "string" ? rest.startTime : "";
+  const need = typeof rest.need === "string" ? rest.need : "";
+  if (!date || !start || need === "catering") return [];
+
+  const database = db();
+  if (!database) return [];
+
+  try {
+    const [rules, hours, closures] = await Promise.all([getBookingRules(), getHours(), getClosures()]);
+    const { results } = await database
+      .prepare(
+        `SELECT starts_at, ends_at, uses_space FROM events
+         WHERE deleted_at IS NULL AND uses_space = 1 AND starts_at LIKE ?1`,
+      )
+      .bind(`${date}%`)
+      .all<{ starts_at: string; ends_at: string | null; uses_space: number }>();
+
+    const now = `${todayLocal()}T${new Intl.DateTimeFormat("en-GB", {
+      timeZone: "America/Chicago",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date())}`;
+
+    return conflicts(
+      { date, start, end: typeof rest.endTime === "string" && rest.endTime ? rest.endTime : undefined },
+      { rules, hours, closures, events: results ?? [], now },
+    ).map((conflict) => conflict.message);
+  } catch {
+    // Never block a request because the check itself failed.
+    return [];
+  }
+}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -48,6 +88,15 @@ export async function POST(request: Request) {
   const { name, email, phone, type, turnstileToken: _token, website: _hp, ...rest } = input;
   void _token;
   void _hp;
+
+  // A request for the room is re-checked here, whatever the browser was shown: the page
+  // may have been open for an hour. A clash doesn't refuse the request — the owner may
+  // still want it, and losing the enquiry would be worse — it's recorded so the admin
+  // shows it before anyone replies.
+  const booking = await bookingConflicts(rest);
+  if (booking.length) {
+    (rest as Record<string, unknown>).conflicts = booking;
+  }
 
   let id: number;
   try {

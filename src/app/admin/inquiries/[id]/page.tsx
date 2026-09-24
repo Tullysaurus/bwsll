@@ -56,8 +56,11 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
   }
 
   const estimate = data.estimate as Estimate | undefined;
+  // Recorded when the request came in: the room wasn't free at the time asked for.
+  const clashes = Array.isArray(data.conflicts) ? (data.conflicts as string[]) : [];
   const entries = Object.entries(data).filter(
-    ([key, value]) => key !== "estimate" && value !== undefined && value !== "",
+    ([key, value]) =>
+      key !== "estimate" && key !== "conflicts" && value !== undefined && value !== "",
   );
 
   const subject = `Re: your ${inquiry.type} request — ${business.name}`;
@@ -76,6 +79,24 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
       <h1 className="display mt-4" style={{ fontSize: 32 }}>
         {inquiry.name}
       </h1>
+
+      {clashes.length ? (
+        <div
+          role="status"
+          className="mt-4 p-4"
+          style={{ border: "1px solid var(--gold)", background: "#fdf6e7", borderRadius: 2 }}
+        >
+          <p className="text-[16px] font-medium">The time they asked for wasn&rsquo;t free.</p>
+          <ul className="mt-2 grid list-disc gap-1 pl-5 text-[15px]">
+            {clashes.map((clash) => (
+              <li key={clash}>{clash}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[14px]" style={{ color: "var(--muted)" }}>
+            Checked when the request arrived. Worth suggesting another time when you reply.
+          </p>
+        </div>
+      ) : null}
       <p className="mt-1 text-[15px]" style={{ color: "var(--muted)" }}>
         {inquiry.type} · received {formatCreatedAt(inquiry.created_at)}
       </p>

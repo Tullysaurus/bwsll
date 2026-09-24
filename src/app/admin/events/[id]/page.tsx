@@ -69,6 +69,7 @@ export default async function AdminEventPage({
           <EventForm
             key={usable?.id ?? "blank"}
             defaults={usable ? eventDefaultsFromInquiry(usable) : undefined}
+            inquiryId={usable?.id}
           />
         </div>
       </div>

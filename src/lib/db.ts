@@ -69,6 +69,11 @@ export type EventRecord = {
   kind: EventKind;
   description: string | null;
   published: number;
+  /** 1 when the event occupies the room, so it blocks other bookings. */
+  uses_space: number;
+  /** 1 when the public calendar should say "Private event" instead of the title. */
+  hide_title: number;
+  inquiry_id: number | null;
   created_at: string;
   deleted_at: string | null;
 };

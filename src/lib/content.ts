@@ -2,10 +2,20 @@ import "server-only";
 import { cache } from "react";
 import { settingRows } from "./settings";
 import { DAY_KEYS, defaultHours, type DayHours, type WeekHours } from "./hours";
+import { defaultBookingRules, type BookingRules } from "./booking";
 import { business as businessDefaults } from "@/content/business";
 import * as copyDefaults from "@/content/copy";
 import { lastUpdated, privacySections, termsSections, type LegalSection } from "@/content/legal";
 import { menuDocument, type MenuDocument } from "@/content/menu";
+import {
+  addOnNote,
+  cateringPackages,
+  defaultSelected,
+  defaultTier,
+  goodToKnow,
+  type CateringPackage,
+  type GuestTier,
+} from "@/content/catering";
 
 /**
  * Owner-editable content.
@@ -120,6 +130,27 @@ export const getLegal = cache(
 /** The whole menu. Lists are replaced wholesale, so removing an item really removes it. */
 export const getMenu = cache(
   async (): Promise<MenuDocument> => deepMerge(menuDocument, await override("menu")),
+);
+
+/** When the room can be booked, and the rules a request has to satisfy. */
+export const getBookingRules = cache(
+  async (): Promise<BookingRules> => deepMerge(defaultBookingRules, await override("booking_rules")),
+);
+
+export type Catering = {
+  packages: CateringPackage[];
+  addOnNote: string;
+  goodToKnow: string[];
+  defaultSelected: string[];
+  defaultTier: GuestTier;
+};
+
+export const getCatering = cache(
+  async (): Promise<Catering> =>
+    deepMerge(
+      { packages: cateringPackages, addOnNote, goodToKnow, defaultSelected, defaultTier },
+      await override("catering"),
+    ),
 );
 
 export const getOrdering = cache(
