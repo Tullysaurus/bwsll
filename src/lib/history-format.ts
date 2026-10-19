@@ -1,13 +1,12 @@
 import { fieldsOf, humanize } from "./shape-form";
-import { fieldLabel } from "./field-labels";
 import { longDate, timeLabel as clockLabel } from "./format";
 import { weeklyLabels, type WeekHours } from "./hours";
 
 /**
  * Turns a revision snapshot into something readable.
  *
- * Settings values are now whole content objects — page text, legal sections, the week's
- * hours — so printing them as JSON is useless. Each one is flattened to labelled fields,
+ * Settings values are often whole content objects — the menu, catering packages, the
+ * week's hours — so printing them as JSON is useless. Each one is flattened to labelled fields,
  * and a revision is shown as what *changed* against the version before it, which is both
  * shorter and the thing someone is actually looking for.
  */
@@ -15,34 +14,39 @@ import { weeklyLabels, type WeekHours } from "./hours";
 export type DisplayField = { label: string; value: string };
 export type FieldChange = { label: string; from: string; to: string };
 
-/** Friendly names and the screen each setting is edited on. */
+/**
+ * Friendly names for every setting that has ever been saved, including the retired ones
+ * at the bottom: their old versions still show in History.
+ */
 export const SETTING_LABEL: Record<string, string> = {
   announcement: "Top bar message",
-  announcement_short: "Top bar message (short)",
   closure_notice: "Closed notice",
   hours_week: "Opening hours",
   rental_rates: "Room rental prices",
   response_time: "Reply time",
   business: "Business details",
   ordering: "Order ahead & delivery",
-  copy: "Page text",
-  legal: "Privacy & terms",
   menu: "Menu",
   booking_rules: "Booking rules",
   catering: "Catering",
+  announcement_short: "Top bar message (short)",
+  copy: "Page text",
+  legal: "Privacy & terms",
 };
+
+/**
+ * The screen each setting is edited on. A setting missing here is no longer edited in
+ * the admin — the site reads it from the code — so its History can't restore it.
+ */
 
 export const SETTING_HOME: Record<string, string> = {
   announcement: "/admin/announcement",
-  announcement_short: "/admin/announcement",
   closure_notice: "/admin/announcement",
   hours_week: "/admin/hours",
   rental_rates: "/admin/settings/prices",
   response_time: "/admin/settings/prices",
   business: "/admin/business",
   ordering: "/admin/business",
-  copy: "/admin/text",
-  legal: "/admin/legal",
   menu: "/admin/menu",
   booking_rules: "/admin/hours",
   catering: "/admin/catering",
@@ -50,17 +54,11 @@ export const SETTING_HOME: Record<string, string> = {
 
 export const EMPTY = "— empty —";
 
-/**
- * "home.hero.h1a" → "Home › Hero › Heading — first line". The last segment gets the
- * same plain-language name the editor shows; array indexes read as "#2".
- */
+/** "business.address.street" → "Business › Address › Street"; indexes read as "#2". */
 export function pathLabel(path: string): string {
-  const parts = path.split(".");
-  return parts
-    .map((segment, index) => {
-      if (/^\d+$/.test(segment)) return `#${Number(segment) + 1}`;
-      return index === parts.length - 1 ? fieldLabel(segment) : humanize(segment);
-    })
+  return path
+    .split(".")
+    .map((segment) => (/^\d+$/.test(segment) ? `#${Number(segment) + 1}` : humanize(segment)))
     .join(" › ");
 }
 

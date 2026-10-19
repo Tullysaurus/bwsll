@@ -20,7 +20,7 @@ export default async function AdminHoursPage() {
   return (
     <div className="max-w-[760px]">
       <h1 className="display" style={{ fontSize: 32 }}>
-        Hours &amp; closed days
+        Closed days &amp; hours
       </h1>
       <p className="mt-2 text-[16px]" style={{ color: "var(--muted)" }}>
         Your normal week, when the room can be booked, and any one-off days you&rsquo;re

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
-import { getLegal } from "@/lib/content";
+import { lastUpdated, privacySections } from "@/content/legal";
 
 export const metadata: Metadata = {
   title: "Privacy notice",
@@ -9,15 +9,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default async function PrivacyPage() {
-  const legal = await getLegal();
+export default function PrivacyPage() {
   return (
     <LegalPage
       eyebrow="Legal"
       titleStart="Privacy"
       titleItalic="notice."
-      sections={legal.privacy}
-      lastUpdated={legal.lastUpdated}
+      sections={privacySections}
+      lastUpdated={lastUpdated}
     />
   );
 }

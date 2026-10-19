@@ -18,7 +18,6 @@ const OWNER_ONLY: Permission[] = [
   "team.manage",
   "trash.purge",
   "settings.business",
-  "settings.legal",
   "inquiries.workforce",
 ];
 

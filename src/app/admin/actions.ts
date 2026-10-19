@@ -21,6 +21,7 @@ import {
 import { eventSchema, fieldErrors } from "@/lib/schemas";
 import { saveSetting, type RentalRates } from "@/lib/settings";
 import { ENTITIES, type EntityType } from "@/lib/entities";
+import { SETTING_HOME } from "@/lib/history-format";
 
 /**
  * Every exported function here is a separate POST endpoint that never renders a layout,
@@ -374,7 +375,8 @@ export async function restoreRevision(formData: FormData) {
   if (!revision) return;
   if (revision.entity_type === "setting") {
     const snapshot = parseSnapshot(revision) as { key?: string; value?: unknown };
-    if (!snapshot.key) return;
+    // A retired setting is read from the code now, so putting it back would change nothing.
+    if (!snapshot.key || !(snapshot.key in SETTING_HOME)) return;
     await saveSetting(snapshot.key, snapshot.value);
     await recordSettingRevision(snapshot.key, snapshot.value, user.email);
   } else {
@@ -483,7 +485,6 @@ export async function saveAnnouncement(formData: FormData) {
 
   const updates: [string, string][] = [
     ["announcement", String(formData.get("announcement") ?? "").trim()],
-    ["announcement_short", String(formData.get("announcement_short") ?? "").trim()],
     ["closure_notice", String(formData.get("closure_notice") ?? "").trim()],
   ];
 

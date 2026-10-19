@@ -10,7 +10,8 @@ import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow, SectionHeading } from "@/components/Typography";
 import { files } from "@/content/business";
 import { rentalRows, rentalTiers } from "@/content/catering";
-import { getCatering, getCopy } from "@/lib/content";
+import { privateEvents } from "@/content/copy";
+import { getCatering } from "@/lib/content";
 import { getSettings, rateOrAsk } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -28,11 +29,7 @@ export default async function PrivateEventsPage({
 }) {
   const requested = (await searchParams).month ?? "";
   const month = isMonth(requested) ? requested : todayLocal().slice(0, 7);
-  const [settings, { privateEvents }, catering] = await Promise.all([
-    getSettings(),
-    getCopy(),
-    getCatering(),
-  ]);
+  const [settings, catering] = await Promise.all([getSettings(), getCatering()]);
   const siteKey = turnstileSiteKey();
   const rates = settings.rental_rates;
 

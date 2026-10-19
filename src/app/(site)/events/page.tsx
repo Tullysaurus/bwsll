@@ -4,7 +4,8 @@ import { Button } from "@/components/Button";
 import { EventList } from "@/components/EventRow";
 import { JsonLd } from "@/components/JsonLd";
 import { PageIntro } from "@/components/Typography";
-import { getBusiness, getCopy } from "@/lib/content";
+import { events as copy } from "@/content/copy";
+import { getBusiness } from "@/lib/content";
 import { getUpcomingEvents, type EventKind } from "@/lib/db";
 import { eventJsonLd } from "@/lib/jsonld";
 import { monthYearKey, monthYearLabel } from "@/lib/format";
@@ -30,7 +31,7 @@ export default async function EventsPage({
 }) {
   const { kind } = await searchParams;
   const activeKind = FILTERS.find((f) => f.kind === kind)?.kind;
-  const [all, business, { events: copy }] = await Promise.all([getUpcomingEvents(), getBusiness(), getCopy()]);
+  const [all, business] = await Promise.all([getUpcomingEvents(), getBusiness()]);
   const shown = activeKind ? all.filter((e) => e.kind === activeKind) : all;
 
   // Group into months, preserving the ascending order the query returned.

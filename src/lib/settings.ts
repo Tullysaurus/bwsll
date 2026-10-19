@@ -9,7 +9,6 @@ export type RentalRates = {
 
 export type Settings = {
   announcement: string;
-  announcement_short: string;
   /** A free-text override for the top bar. Dated closures live in the `closures` table. */
   closure_notice: string;
   response_time: string;
@@ -19,7 +18,6 @@ export type Settings = {
 /** Defaults are the live answer until the owner edits them in /admin/settings. */
 export const defaultSettings: Settings = {
   announcement: "Now open at GEM · 609 E. Pine St., Tulsa",
-  announcement_short: "Now open at GEM",
   closure_notice: "",
   // TBD: owner to confirm the promised reply window.
   response_time: "2 business days",

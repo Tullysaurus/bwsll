@@ -20,7 +20,7 @@ export default async function DocumentsPage() {
   return (
     <div className="max-w-[820px]">
       <h1 className="display" style={{ fontSize: 32 }}>
-        Documents
+        Files &amp; menus
       </h1>
       <p className="mt-2 text-[15px]" style={{ color: "var(--muted)" }}>
         The PDFs linked from the site. Uploading a new one replaces what visitors download

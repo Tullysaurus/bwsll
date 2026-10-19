@@ -15,7 +15,7 @@ const HOW_TO: { question: string; answer: React.ReactNode }[] = [
     question: "We're closed today — how do I say so?",
     answer: (
       <>
-        Go to <Link href="/admin/hours" className="link">Hours &amp; closed days</Link>, scroll to
+        Go to <Link href="/admin/hours" className="link">Closed days &amp; hours</Link>, scroll to
         &ldquo;Add a closed day&rdquo;, pick today&rsquo;s date and write the reason. A green bar
         appears across the top of every page. It clears itself when the day passes.
       </>
@@ -56,6 +56,21 @@ const HOW_TO: { question: string; answer: React.ReactNode }[] = [
     ),
   },
   {
+    question: "Some wording on the website needs changing.",
+    answer: (
+      <>
+        Headings, descriptions and the privacy and terms pages aren&rsquo;t changed here —
+        they&rsquo;re kept with the website itself, so they stay consistent. Get in touch
+        with{" "}
+        <a href={credit.url} target="_blank" rel="noreferrer" className="link">
+          {credit.name}
+        </a>
+        , who built the site, and say which page and what it should now say. Prices, hours, photos, the menu and the top bar
+        are all yours to change here.
+      </>
+    ),
+  },
+  {
     question: "I made a mistake. Can I undo it?",
     answer: (
       <>
@@ -73,8 +88,7 @@ const HOW_TO: { question: string; answer: React.ReactNode }[] = [
         An owner adds them on{" "}
         <Link href="/admin/team" className="link">Who can sign in</Link>. They&rsquo;ll need to
         sign in with the email address you add. New people start as staff, which is
-        everything except the business details, the legal pages, the team and deleting
-        things for good.
+        everything except the business details, the team and deleting things for good.
       </>
     ),
   },

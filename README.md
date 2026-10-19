@@ -109,7 +109,7 @@ record only removes the object when nothing else points at it.
 
 - **Team** (`/admin/team`, owners only) adds people by email. They sign in at `/admin`
   with a one-time code. New people default to **staff**, who can do the day-to-day work
-  but cannot manage the team, edit business or legal settings, delete anything forever, or
+  but cannot manage the team, edit business details, delete anything forever, or
   see workforce applications. `OWNER_EMAILS` in `wrangler.jsonc` is always an owner.
 - **History** — every admin change records who changed what, when. Each record has a
   History link with **Restore this version** on older entries.
@@ -132,8 +132,16 @@ database falls back to.
   `src/content/menu.ts`.
 - **Photos** — `/admin/photos`, one entry per slot on the site. Default:
   `src/content/photos.ts`; see `docs/PHOTOS.md`.
-- **Hours, closed days, announcements, page text** — `/admin/hours`, `/admin/announcement`
-  and `/admin/text`. Defaults: `src/lib/settings.ts` and `src/content/`.
+- **Hours, closed days, the top bar** — `/admin/hours` and `/admin/announcement`.
+  Defaults: `src/lib/settings.ts` and `src/content/`.
+
+Page wording (`src/content/copy.ts`) and the privacy notice and terms
+(`src/content/legal.ts`) are deliberately **not** editable in the admin: they change in
+code, on request. The same goes for the business name, legal entity, tagline and map
+link in `src/content/business.ts`, and the catering add-ons note and house rules in
+`src/content/catering.ts` — `/admin/business` and `/admin/catering` edit only the
+contact details and the packages. Anything saved for these before they were locked is
+ignored by the site, but still readable under `/admin/history/setting/<key>`.
 
 ## Deploying
 

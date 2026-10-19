@@ -75,24 +75,13 @@ export default async function AdminAnnouncementPage() {
               defaultValue={settings.announcement}
               placeholder="Now open at GEM · 609 E. Pine St., Tulsa"
             />
-          </div>
-
-          <div>
-            <label htmlFor="announcement_short" className="field-label">
-              Shorter version, for phones
-            </label>
-            <input
-              id="announcement_short"
-              name="announcement_short"
-              className="field-input"
-              defaultValue={settings.announcement_short}
-              placeholder="Now open at GEM"
-            />
-            <p className="field-hint">A few words — phone screens cut off anything longer.</p>
+            <p className="field-hint">
+              Phones don&rsquo;t have room for it, so they show your hours instead.
+            </p>
           </div>
         </div>
 
-        <HistoryLinks keys={["announcement", "announcement_short", "closure_notice"]} />
+        <HistoryLinks keys={["announcement", "closure_notice"]} />
       </DirtyForm>
     </div>
   );

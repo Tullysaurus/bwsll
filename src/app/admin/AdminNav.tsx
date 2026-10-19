@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * The admin menu: grouped by the job you came here to do, rather than one flat list.
- * On a phone it collapses into a single "Menu" disclosure that shows where you are; the
- * `key={pathname}` remounts it closed after every move, with no effect needed.
+ * The admin menu: one short list, most-used first. On a phone it collapses into a single
+ * "Menu" disclosure that shows where you are; the `key={pathname}` remounts it closed
+ * after every move, with no effect needed.
  */
 
 export type NavItem = {
@@ -15,14 +15,16 @@ export type NavItem = {
   badge?: number;
   /** Extra routes that belong to this item — the screens behind Settings, say. */
   match?: string[];
+  /** Active only on its own route — for Home, which every admin route sits under. */
+  exact?: boolean;
 };
-export type NavGroup = { title?: string; items: NavItem[] };
 
 function under(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function isActive(pathname: string, item: NavItem) {
+  if (item.exact) return pathname === item.href;
   return under(pathname, item.href) || (item.match ?? []).some((href) => under(pathname, href));
 }
 
@@ -54,34 +56,19 @@ function Item({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function Groups({ groups, pathname }: { groups: NavGroup[]; pathname: string }) {
+function Items({ items, pathname }: { items: NavItem[]; pathname: string }) {
   return (
-    <>
-      {groups.map((group, index) => (
-        <div key={group.title ?? index} className={index === 0 ? "" : "mt-5"}>
-          {group.title ? (
-            <p
-              className="px-3 pb-1 text-[12px] font-semibold uppercase"
-              style={{ letterSpacing: "0.1em", color: "var(--muted)" }}
-            >
-              {group.title}
-            </p>
-          ) : null}
-          <div className="grid gap-1">
-            {group.items.map((item) => (
-              <Item key={item.href} item={item} active={isActive(pathname, item)} />
-            ))}
-          </div>
-        </div>
+    <div className="grid gap-1">
+      {items.map((item) => (
+        <Item key={item.href} item={item} active={isActive(pathname, item)} />
       ))}
-    </>
+    </div>
   );
 }
 
-export function AdminNav({ groups }: { groups: NavGroup[] }) {
+export function AdminNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
-  const here =
-    groups.flatMap((g) => g.items).find((item) => isActive(pathname, item))?.label ?? "Menu";
+  const here = items.find((item) => isActive(pathname, item))?.label ?? "Menu";
 
   return (
     <>
@@ -91,12 +78,12 @@ export function AdminNav({ groups }: { groups: NavGroup[] }) {
           {here} <span style={{ color: "var(--muted)", fontWeight: 400 }}>· tap to switch</span>
         </summary>
         <nav aria-label="Admin sections" className="p-3 pt-0">
-          <Groups groups={groups} pathname={pathname} />
+          <Items items={items} pathname={pathname} />
         </nav>
       </details>
 
       <nav aria-label="Admin sections" className="hidden p-3 md:block">
-        <Groups groups={groups} pathname={pathname} />
+        <Items items={items} pathname={pathname} />
       </nav>
     </>
   );

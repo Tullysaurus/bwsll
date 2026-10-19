@@ -6,7 +6,8 @@ import { PhotoSlot } from "@/components/PhotoSlot";
 import { SignatureGrid } from "@/components/SignatureGrid";
 import { Eyebrow, PageIntro } from "@/components/Typography";
 import { files } from "@/content/business";
-import { getCopy, getMenu } from "@/lib/content";
+import { menuPage } from "@/content/copy";
+import { getMenu } from "@/lib/content";
 
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MenuPage() {
-  const [{ menuPage }, menu] = await Promise.all([getCopy(), getMenu()]);
+  const menu = await getMenu();
   const { espresso, flavorShots, food, signatureGroups, sizedTables } = menu;
   const menuSections = menu.sections;
   return (

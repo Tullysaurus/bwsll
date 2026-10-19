@@ -4,7 +4,7 @@ import { countNewInquiries } from "@/lib/db";
 import { currentAdmin, currentEmail } from "@/lib/auth";
 import { can, ROLE_LABEL } from "@/lib/permissions";
 import { getSettings } from "@/lib/settings";
-import { AdminNav, type NavGroup } from "./AdminNav";
+import { AdminNav, type NavItem } from "./AdminNav";
 import { NoAccess } from "./Guard";
 
 export const metadata: Metadata = {
@@ -32,44 +32,29 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const settings = await getSettings();
   const bannerLive = Boolean(settings.closure_notice.trim());
 
-  // Short on purpose: four groups, and everything that is set up once lives behind
-  // Settings. Staff and owners see the same menu — the owner-only screens are inside.
-  const groups: NavGroup[] = [
-    { items: [{ href: "/admin", label: "Home" }] },
+  // One short list, most-used first. Anything set up once and rarely touched lives
+  // behind Settings. Staff and owners see the same menu — the owner-only screens are
+  // inside Settings.
+  const items: NavItem[] = [
+    { href: "/admin", label: "Home", exact: true },
+    { href: "/admin/inquiries", label: "Messages", badge: newCount },
+    { href: "/admin/events", label: "Events" },
+    { href: "/admin/hours", label: "Closed days & hours" },
+    { href: "/admin/announcement", label: "Top bar message" },
+    { href: "/admin/menu", label: "Menu" },
+    { href: "/admin/photos", label: "Photos" },
+    { href: "/admin/subscribers", label: "Mailing list" },
+    { href: "/admin/club", label: "Club members" },
     {
-      title: "From visitors",
-      items: [
-        { href: "/admin/inquiries", label: "Messages", badge: newCount },
-        { href: "/admin/subscribers", label: "Mailing list" },
-        { href: "/admin/club", label: "Club members" },
-      ],
-    },
-    {
-      title: "Your website",
-      items: [
-        { href: "/admin/events", label: "Events" },
-        { href: "/admin/menu", label: "Menu" },
-        { href: "/admin/catering", label: "Catering" },
-        { href: "/admin/photos", label: "Photos" },
-        { href: "/admin/text", label: "Page text" },
-        { href: "/admin/documents", label: "Files & menus" },
-      ],
-    },
-    {
-      items: [
-        {
-          href: "/admin/settings",
-          label: "Settings",
-          match: [
-            "/admin/announcement",
-            "/admin/hours",
-            "/admin/business",
-            "/admin/legal",
-            "/admin/team",
-            "/admin/trash",
-            "/admin/help",
-          ],
-        },
+      href: "/admin/settings",
+      label: "Settings",
+      match: [
+        "/admin/catering",
+        "/admin/documents",
+        "/admin/business",
+        "/admin/team",
+        "/admin/trash",
+        "/admin/help",
       ],
     },
   ];
@@ -88,7 +73,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Website admin
           </p>
         </div>
-        <AdminNav groups={groups} />
+        <AdminNav items={items} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">

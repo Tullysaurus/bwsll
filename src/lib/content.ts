@@ -4,8 +4,6 @@ import { settingRows } from "./settings";
 import { DAY_KEYS, defaultHours, type DayHours, type WeekHours } from "./hours";
 import { defaultBookingRules, type BookingRules } from "./booking";
 import { business as businessDefaults } from "@/content/business";
-import * as copyDefaults from "@/content/copy";
-import { lastUpdated, privacySections, termsSections, type LegalSection } from "@/content/legal";
 import { menuDocument, type MenuDocument } from "@/content/menu";
 import {
   addOnNote,
@@ -24,6 +22,10 @@ import {
  * a JSON row in `settings` overrides it, and the two are merged key by key. A key added
  * to the code later shows up immediately with no migration, and an empty database still
  * renders the whole site.
+ *
+ * Only what the admin edits is read from the row. Page wording and the legal pages are
+ * imported straight from `src/content/*`, and so are the business and catering fields
+ * the admin locks — so a value saved before they were locked can't linger on the site.
  */
 
 /** Widens `as const` content into the editable shape: literals become strings. */
@@ -40,24 +42,11 @@ type Editable<T> = T extends string
           : T;
 
 export type Business = Editable<typeof businessDefaults>;
-export type Copy = {
-  home: Editable<typeof copyDefaults.home>;
-  club: Editable<typeof copyDefaults.club>;
-  vendors: Editable<typeof copyDefaults.vendors>;
-  about: Editable<typeof copyDefaults.about>;
-  events: Editable<typeof copyDefaults.events>;
-  privateEvents: Editable<typeof copyDefaults.privateEvents>;
-  visit: Editable<typeof copyDefaults.visit>;
-  menuPage: Editable<typeof copyDefaults.menuPage>;
-  workforceCurriculum: Editable<typeof copyDefaults.workforceCurriculum>;
-  businessDevelopment: string;
-};
-export type Legal = { privacy: LegalSection[]; terms: LegalSection[]; lastUpdated: string };
 export type Ordering = { orderAhead: string; doordash: string; ubereats: string };
 
 /**
- * Arrays are replaced wholesale rather than merged — a list of legal sections or
- * benefits is one thing the owner edits, not a set of positions to patch.
+ * Arrays are replaced wholesale rather than merged — a list of drinks or packages is one
+ * thing the owner edits, not a set of positions to patch.
  */
 export function deepMerge<T>(base: T, patch: unknown): T {
   if (patch === null || patch === undefined) return base;
@@ -84,17 +73,37 @@ async function override(key: string): Promise<unknown> {
 
 const digits = (value: string) => value.replace(/\D/g, "");
 
+/** "https://www.instagram.com/BWStLiquidLounge/" → "@BWStLiquidLounge". */
+function handleOf(url: string): string | null {
+  const name = url.replace(/[?#].*$/, "").replace(/\/+$/, "").split("/").pop() ?? "";
+  return name && !name.includes(".") ? `@${name}` : null;
+}
+
+/** The business fields the admin edits. Everything else about the business is code. */
+export type Contact = Pick<Business, "phone" | "email" | "social"> & {
+  address: Pick<Business["address"], "street" | "city" | "state" | "zip">;
+};
+
+export function contactOf(info: Business): Contact {
+  const { street, city, state, zip } = info.address;
+  return { phone: info.phone, email: info.email, address: { street, city, state, zip }, social: info.social };
+}
+
 export const getBusiness = cache(async (): Promise<Business> => {
-  const merged = deepMerge(businessDefaults as Business, await override("business"));
+  const defaults = businessDefaults as Business;
+  // Merging over the contact fields alone drops anything else an older save stored.
+  const contact = deepMerge(contactOf(defaults), await override("business"));
+  const merged: Business = { ...defaults, ...contact, address: { ...defaults.address, ...contact.address } };
 
   // Derived fields are recomputed rather than edited, so a changed phone number can't
-  // leave a stale `tel:` link behind.
+  // leave a stale `tel:` link behind, nor a changed Instagram link a stale handle.
   const phone = digits(merged.phone);
   return {
     ...merged,
     phoneHref: phone.length === 10 ? `tel:+1${phone}` : `tel:${merged.phone}`,
     emailHref: `mailto:${merged.email}`,
     addressLine: `${merged.address.street}, ${merged.address.city}, ${merged.address.state} ${merged.address.zip}`,
+    instagramHandle: handleOf(merged.social.instagram) ?? defaults.instagramHandle,
   };
 });
 
@@ -106,26 +115,6 @@ export function socialLinksOf(info: Business) {
     { label: "X", href: info.social.x },
   ].filter((link) => link.href.trim());
 }
-
-const copyBase: Copy = {
-  home: copyDefaults.home as Copy["home"],
-  club: copyDefaults.club as Copy["club"],
-  vendors: copyDefaults.vendors as Copy["vendors"],
-  about: copyDefaults.about as Copy["about"],
-  events: copyDefaults.events as Copy["events"],
-  privateEvents: copyDefaults.privateEvents as Copy["privateEvents"],
-  visit: copyDefaults.visit as Copy["visit"],
-  menuPage: copyDefaults.menuPage as Copy["menuPage"],
-  workforceCurriculum: copyDefaults.workforceCurriculum as Copy["workforceCurriculum"],
-  businessDevelopment: copyDefaults.businessDevelopment,
-};
-
-export const getCopy = cache(async (): Promise<Copy> => deepMerge(copyBase, await override("copy")));
-
-export const getLegal = cache(
-  async (): Promise<Legal> =>
-    deepMerge({ privacy: privacySections, terms: termsSections, lastUpdated }, await override("legal")),
-);
 
 /** The whole menu. Lists are replaced wholesale, so removing an item really removes it. */
 export const getMenu = cache(
@@ -145,13 +134,11 @@ export type Catering = {
   defaultTier: GuestTier;
 };
 
-export const getCatering = cache(
-  async (): Promise<Catering> =>
-    deepMerge(
-      { packages: cateringPackages, addOnNote, goodToKnow, defaultSelected, defaultTier },
-      await override("catering"),
-    ),
-);
+/** Only the packages are edited; the add-ons note and the house rules are code. */
+export const getCatering = cache(async (): Promise<Catering> => {
+  const saved = deepMerge({ packages: cateringPackages, defaultSelected, defaultTier }, await override("catering"));
+  return { ...saved, addOnNote, goodToKnow };
+});
 
 export const getOrdering = cache(
   async (): Promise<Ordering> =>

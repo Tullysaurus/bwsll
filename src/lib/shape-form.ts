@@ -1,17 +1,14 @@
 /**
- * Turns a plain content object into a form, and a submitted form back into the same
- * shape. The defaults in `src/content/*` are the template: every field the editor shows
- * comes from walking them, and rebuilding reads only the paths that template contains,
- * so a stray form field can never add a key or change a type.
+ * Walks a plain content object into named fields (how History prints a saved setting),
+ * and rebuilds that shape from a submitted form. Rebuilding reads only the paths the
+ * template contains, so a stray form field can never add a key or change a type.
  *
- * Paths look like `home.hero.title` or `club.benefits.2`.
+ * Paths look like `business.address.street` or `packages.2.name`.
  */
 
 export type Field =
   | { kind: "text" | "textarea"; path: string; label: string; value: string }
   | { kind: "lines"; path: string; label: string; value: string[] };
-
-export type Group = { title: string; fields: Field[] };
 
 const LONG = 90;
 
@@ -57,14 +54,6 @@ export function fieldsOf(value: unknown, path = "", label = ""): Field[] {
   }
 
   return [];
-}
-
-/** One group per top-level key, so a long content object edits page by page. */
-export function groupsOf(value: Record<string, unknown>): Group[] {
-  return Object.entries(value).map(([key, child]) => ({
-    title: humanize(key),
-    fields: fieldsOf(child, key, humanize(key)),
-  }));
 }
 
 /**

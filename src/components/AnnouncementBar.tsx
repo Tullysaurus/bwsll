@@ -13,7 +13,6 @@ export async function AnnouncementBar() {
 
   const closure = settings.closure_notice.trim() || closureBanner(closures, todayLocal());
   const left = closure || settings.announcement;
-  const leftShort = closure || settings.announcement_short;
   const hoursShort = shortLabel(hours);
 
   return (
@@ -33,9 +32,10 @@ export async function AnnouncementBar() {
           {hoursShort}
         </p>
 
-        {/* Mobile: one centred line. */}
+        {/* Mobile: one centred line — the hours, after the closed notice if one is up. */}
         <p className="w-full text-center md:hidden" style={{ fontWeight: 500 }}>
-          {leftShort} · {hoursShort.replace(" · ", " ")}
+          {closure ? `${closure} · ` : ""}
+          {hoursShort.replace(" · ", " ")}
         </p>
       </div>
     </div>

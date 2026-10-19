@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { requireDb } from "@/lib/db";
-import { getBookingRules, getBusiness, getCatering, getCopy, getLegal, getMenu, getOrdering } from "@/lib/content";
+import { contactOf, getBookingRules, getBusiness, getCatering, getMenu, getOrdering } from "@/lib/content";
 import { DAY_KEYS, type DayHours, type WeekHours } from "@/lib/hours";
 import { parseWindows, type BookingRules } from "@/lib/booking";
 import { parsePackages } from "@/lib/catering-text";
@@ -21,10 +21,10 @@ import type { MenuDocument } from "@/content/menu";
 
 /**
  * Writes for everything the owner can edit about the business itself: hours, closures,
- * contact details, ordering links, page text and the legal pages.
+ * contact details, ordering links, the menu and catering.
  *
  * Each of these is its own POST endpoint, so each one checks permission itself. Business
- * details and the legal pages are owner-only (§ `OWNER_ONLY` in permissions.ts).
+ * details are owner-only (§ `OWNER_ONLY` in permissions.ts).
  */
 
 async function saveContent(key: string, value: unknown, user: string, paths: string[]) {
@@ -115,7 +115,7 @@ export async function deleteClosure(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
-/* --- business, ordering, text, legal -------------------------------------- */
+/* --- business and ordering ------------------------------------------------ */
 
 /** Business details and the ordering links are one screen, so they save together. */
 export async function saveBusinessScreen(formData: FormData) {
@@ -123,9 +123,10 @@ export async function saveBusinessScreen(formData: FormData) {
   await saveOrdering(formData);
 }
 
+/** Only the contact fields are written; the rest of the business comes from the code. */
 export async function saveBusiness(formData: FormData) {
   const user = await requireAdmin("settings.business");
-  const current = await getBusiness();
+  const current = contactOf(await getBusiness());
   await saveContent("business", parseShape(current, formData, "business"), user.email, ["/admin/business"]);
 }
 
@@ -133,22 +134,6 @@ export async function saveOrdering(formData: FormData) {
   const user = await requireAdmin("settings.business");
   const current = await getOrdering();
   await saveContent("ordering", parseShape(current, formData), user.email, ["/admin/business"]);
-}
-
-export async function saveCopy(formData: FormData) {
-  const user = await requireAdmin();
-  const current = await getCopy();
-  await saveContent("copy", parseShape(current, formData), user.email, ["/admin/text"]);
-}
-
-export async function saveLegal(formData: FormData) {
-  const user = await requireAdmin("settings.legal");
-  const current = await getLegal();
-  await saveContent("legal", parseShape(current, formData), user.email, [
-    "/admin/legal",
-    "/privacy",
-    "/terms",
-  ]);
 }
 
 /* --- menu ----------------------------------------------------------------- */
@@ -248,25 +233,12 @@ export async function saveCatering(formData: FormData) {
     );
   }
 
-  const lines = (name: string) =>
-    String(formData.get(name) ?? "")
-      .replace(/\r\n/g, "\n")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-
   // A package that's gone can't stay ticked by default.
   const ids = new Set(packages.map((pkg) => pkg.id));
 
   await saveContent(
     "catering",
-    {
-      ...current,
-      packages,
-      addOnNote: String(formData.get("addOnNote") ?? "").trim(),
-      goodToKnow: lines("goodToKnow"),
-      defaultSelected: current.defaultSelected.filter((id) => ids.has(id)),
-    },
+    { packages, defaultSelected: current.defaultSelected.filter((id) => ids.has(id)) },
     user.email,
     ["/admin/catering", "/private-events"],
   );

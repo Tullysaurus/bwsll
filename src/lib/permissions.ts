@@ -19,10 +19,8 @@ export const PERMISSIONS = [
   "team.manage",
   /** Purge a trashed record and its R2 objects for good. */
   "trash.purge",
-  /** Edit business identity: name, address, phone, legal entity, links. */
+  /** Edit business contact details: address, phone, email, social and ordering links. */
   "settings.business",
-  /** Edit the privacy notice and terms. */
-  "settings.legal",
   /** View or export workforce applications — applicants can be minors. */
   "inquiries.workforce",
 ] as const;
@@ -39,7 +37,6 @@ const OWNER_ONLY: readonly Permission[] = [
   "team.manage",
   "trash.purge",
   "settings.business",
-  "settings.legal",
   "inquiries.workforce",
 ];
 
@@ -63,6 +60,6 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 export const ROLE_DESCRIPTION: Record<Role, string> = {
-  owner: "Full access, including the team, business details, legal pages and workforce applications.",
+  owner: "Full access, including the team, business details and workforce applications.",
   staff: "Day-to-day work: inquiries, events, menu, hours, photos and the mailing list.",
 };

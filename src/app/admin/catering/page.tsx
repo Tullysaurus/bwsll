@@ -71,36 +71,6 @@ export default async function AdminCateringPage() {
             Name | Group | price for 10 guests — e.g. Fruit Tray | Trays &amp; sides | 40
           </p>
         </div>
-
-        <div className="mt-6">
-          <label htmlFor="addOnNote" className="field-label">
-            Add-ons and extras
-          </label>
-          <textarea
-            id="addOnNote"
-            name="addOnNote"
-            className="field-input"
-            rows={3}
-            defaultValue={catering.addOnNote}
-          />
-          <p className="field-hint">Printed under the estimator, as one paragraph.</p>
-        </div>
-
-        <div className="mt-6">
-          <label htmlFor="goodToKnow" className="field-label">
-            Good to know
-          </label>
-          <textarea
-            id="goodToKnow"
-            name="goodToKnow"
-            className="field-input"
-            rows={Math.max(4, catering.goodToKnow.length + 1)}
-            defaultValue={catering.goodToKnow.join("\n")}
-          />
-          <p className="field-hint">
-            One rule per line — deposits, clean-up, alcohol, outside caterers.
-          </p>
-        </div>
       </DirtyForm>
 
       <HistoryLinks keys={["catering"]} />

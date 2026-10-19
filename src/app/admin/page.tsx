@@ -117,7 +117,6 @@ export default async function AdminHome() {
           { href: "/admin/photos", label: "Change a photo on the site" },
           { href: "/admin/documents", label: "Put up a new menu or flyer" },
           { href: "/admin/hours", label: "Change opening hours" },
-          { href: "/admin/text", label: "Reword something on a page" },
         ].map((item) => (
           <li key={item.label}>
             <Link href={item.href} className="link">

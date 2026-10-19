@@ -128,6 +128,7 @@ export default async function HistoryPage({
   if (!isSetting && !(entity in ENTITIES)) notFound();
 
   const settingKey = isSetting ? decodedId : null;
+  const retired = settingKey !== null && !(settingKey in SETTING_HOME);
   const revisions = await listRevisions(entity as EntityType, decodedId);
   const backHref = settingKey
     ? (SETTING_HOME[settingKey] ?? "/admin/settings")
@@ -150,6 +151,12 @@ export default async function HistoryPage({
           ? (SETTING_LABEL[settingKey] ?? settingKey.replace(/_/g, " "))
           : `${ENTITY_LABEL[entity as EntityType] ?? entity} · ${decodedId}`}
       </p>
+      {retired ? (
+        <p className="mt-3 text-[15px]" style={{ color: "var(--muted)" }}>
+          This isn&rsquo;t edited in the admin any more — the site uses the wording in its
+          code. The old versions are kept here for reference.
+        </p>
+      ) : null}
 
       {revisions.length === 0 ? (
         <p className="mt-8 text-[16px]" style={{ color: "var(--muted)" }}>
@@ -181,7 +188,7 @@ export default async function HistoryPage({
                   <Snapshot fields={fields[index]} />
                 )}
 
-                {index === 0 ? null : (
+                {index === 0 || retired ? null : (
                   <form action={restoreRevision} className="mt-3">
                     <input type="hidden" name="revisionId" value={row.id} />
                     <ConfirmButton

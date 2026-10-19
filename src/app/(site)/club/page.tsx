@@ -3,7 +3,7 @@ import { InquiryForm } from "@/components/InquiryForm";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { PageIntro } from "@/components/Typography";
 import { files } from "@/content/business";
-import { getCopy } from "@/lib/content";
+import { club } from "@/content/copy";
 import { getSettings } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ClubPage() {
-  const [settings, { club }] = await Promise.all([getSettings(), getCopy()]);
+  const settings = await getSettings();
 
   return (
     <>

@@ -5,7 +5,8 @@ import { JsonLd } from "@/components/JsonLd";
 import { OrderButtons } from "@/components/OrderButtons";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { Eyebrow } from "@/components/Typography";
-import { getBusiness, getCopy, getHours, socialLinksOf } from "@/lib/content";
+import { visit } from "@/content/copy";
+import { getBusiness, getHours, socialLinksOf } from "@/lib/content";
 import { weeklyLabels } from "@/lib/hours";
 import { cafeJsonLd } from "@/lib/jsonld";
 import { getSettings } from "@/lib/settings";
@@ -20,12 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function VisitPage() {
-  const [settings, business, { visit }, hours] = await Promise.all([
-    getSettings(),
-    getBusiness(),
-    getCopy(),
-    getHours(),
-  ]);
+  const [settings, business, hours] = await Promise.all([getSettings(), getBusiness(), getHours()]);
   const socialLinks = socialLinksOf(business);
 
   return (

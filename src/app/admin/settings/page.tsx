@@ -16,22 +16,10 @@ export default async function AdminSettingsIndex() {
 
   const cards = [
     {
-      href: "/admin/announcement",
-      label: "Top bar message",
-      blurb: "The strip across the top of every page, and the closed notice.",
+      href: "/admin/catering",
+      label: "Catering",
+      blurb: "The packages and prices in the catering estimator.",
       show: true,
-    },
-    {
-      href: "/admin/hours",
-      label: "Hours & closed days",
-      blurb: "Your normal week, plus holidays and one-off changes.",
-      show: true,
-    },
-    {
-      href: "/admin/business",
-      label: "Business details",
-      blurb: "Address, phone, email, social links, order-ahead and delivery.",
-      show: can(role, "settings.business"),
     },
     {
       href: "/admin/settings/prices",
@@ -40,10 +28,16 @@ export default async function AdminSettingsIndex() {
       show: true,
     },
     {
-      href: "/admin/legal",
-      label: "Privacy & terms",
-      blurb: "The legal text at the bottom of the site.",
-      show: can(role, "settings.legal"),
+      href: "/admin/documents",
+      label: "Files & menus",
+      blurb: "The PDFs people download — the menu, agreements and price sheets.",
+      show: true,
+    },
+    {
+      href: "/admin/business",
+      label: "Business details",
+      blurb: "Address, phone, email, social links, order-ahead and delivery.",
+      show: can(role, "settings.business"),
     },
     {
       href: "/admin/team",

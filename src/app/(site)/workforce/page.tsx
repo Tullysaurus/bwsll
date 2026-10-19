@@ -3,7 +3,7 @@ import { InquiryForm } from "@/components/InquiryForm";
 import { PhotoSlot } from "@/components/PhotoSlot";
 import { PageIntro } from "@/components/Typography";
 import { files } from "@/content/business";
-import { getCopy } from "@/lib/content";
+import { businessDevelopment, home, workforceCurriculum } from "@/content/copy";
 import { getSettings } from "@/lib/settings";
 import { turnstileSiteKey } from "@/lib/turnstile";
 
@@ -15,8 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkforcePage() {
-  const [settings, copy] = await Promise.all([getSettings(), getCopy()]);
-  const { businessDevelopment, home, workforceCurriculum } = copy;
+  const settings = await getSettings();
 
   return (
     <>
